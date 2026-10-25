@@ -24,4 +24,4 @@ The authoritative transitive versions and hashes are in each project's `packages
 
 ## Project license
 
-MDCL's own source/binary license has **not been selected by the project owner**. Until a LICENSE is added by the owner, do not redistribute MDCL itself. Third-party components remain under the licenses listed above.
+The project owner selected MIT for MDCL-owned source and binaries on 2026-10-25. See `LICENSE`. Third-party components retain their own terms. `licenses/dependencies.json` records exact locked versions, NuGet content hashes, and license metadata; `licenses/` contains upstream notices, package license files, the Inter OFL, and .NET third-party notices. Minecraft, downloaded Java runtimes, loaders and mods are separate upstream downloads and are not included in MDCL release archives.

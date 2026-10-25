@@ -12,9 +12,9 @@ jobs:
         include:
           - os: windows-latest
             rid: win-x64
-          - os: macos-14
+          - os: macos-15
             rid: osx-arm64
-          - os: macos-13
+          - os: macos-15-intel
             rid: osx-x64
     runs-on: ${{ matrix.os }}
     steps:
@@ -22,11 +22,16 @@ jobs:
       - uses: actions/setup-dotnet@v4
         with:
           dotnet-version: '10.0.402'
-      - run: dotnet restore MDCL.sln --locked-mode
-      - run: dotnet build MDCL.sln -c Release --no-restore
-      - run: dotnet test MDCL.sln -c Release --no-build
-      - run: dotnet publish src/MDCL.Desktop/MDCL.Desktop.csproj -c Release -r ${{ matrix.rid }} --self-contained true --no-restore -o artifacts/${{ matrix.rid }}
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - shell: pwsh
+        run: ./packaging/publish.ps1 -RuntimeIdentifiers '${{ matrix.rid }}'
+      - shell: pwsh
+        run: ./packaging/package.ps1 -SkipPublish -RuntimeIdentifiers '${{ matrix.rid }}'
       - uses: actions/upload-artifact@v4
         with:
           name: MDCL-${{ matrix.rid }}-UNVERIFIED
-          path: artifacts/${{ matrix.rid }}
+          path: |
+            artifacts/packages/
+            artifacts/verification/release/

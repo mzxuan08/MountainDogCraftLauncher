@@ -54,7 +54,7 @@ public sealed class LaunchPlanBuilder
             ["classpath_separator"] = separator,
             ["library_directory"] = Path.Combine(shared, "libraries"),
             ["launcher_name"] = "MDCL",
-            ["launcher_version"] = "0.1.0-alpha",
+            ["launcher_version"] = BuildInfo.Version,
             ["game_directory"] = workingDirectory,
             ["assets_root"] = Path.Combine(shared, "assets"),
             ["assets_index_name"] = version.AssetIndex?.Id ?? "",

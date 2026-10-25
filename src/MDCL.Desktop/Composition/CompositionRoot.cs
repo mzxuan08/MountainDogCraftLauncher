@@ -33,7 +33,7 @@ public static class CompositionRoot
             : new MacOSAppPaths(dataRootOverride);
         pathsConfig(paths);
         var http = new HttpClient { Timeout = TimeSpan.FromMinutes(5) };
-        http.DefaultRequestHeaders.UserAgent.Add(new ProductInfoHeaderValue("MDCL", "0.1.0-alpha"));
+        http.DefaultRequestHeaders.UserAgent.Add(new ProductInfoHeaderValue("MDCL", BuildInfo.Version));
 
         services.AddSingleton(paths);
         services.AddSingleton(http);
