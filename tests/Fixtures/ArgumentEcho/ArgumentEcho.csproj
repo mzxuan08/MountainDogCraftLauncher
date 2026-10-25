@@ -1,0 +1,7 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <AssemblyName>ArgumentEcho</AssemblyName>
+    <RootNamespace>ArgumentEcho</RootNamespace>
+  </PropertyGroup>
+</Project>

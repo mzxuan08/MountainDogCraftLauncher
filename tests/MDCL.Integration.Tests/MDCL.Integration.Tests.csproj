@@ -9,6 +9,7 @@
     <ProjectReference Include="../../src/MDCL.Infrastructure/MDCL.Infrastructure.csproj" />
     <ProjectReference Include="../../src/MDCL.Platform.Windows/MDCL.Platform.Windows.csproj" />
     <ProjectReference Include="../../src/MDCL.Platform.MacOS/MDCL.Platform.MacOS.csproj" />
+    <ProjectReference Include="../Fixtures/ArgumentEcho/ArgumentEcho.csproj" ReferenceOutputAssembly="false" />
     <PackageReference Include="Microsoft.NET.Test.Sdk" />
     <PackageReference Include="xunit" />
     <PackageReference Include="xunit.runner.visualstudio" />
