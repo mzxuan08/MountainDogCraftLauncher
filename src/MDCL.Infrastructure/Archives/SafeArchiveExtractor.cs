@@ -1,4 +1,5 @@
 using System.IO.Compression;
+using System.Formats.Tar;
 using MDCL.Core.Errors;
 
 namespace MDCL.Infrastructure.Archives;
@@ -25,6 +26,7 @@ public sealed class SafeArchiveExtractor
     {
         policy ??= new ArchiveExtractionPolicy();
         var root = Path.GetFullPath(destinationRoot);
+        EnsureNoReparseAncestors(Path.GetPathRoot(root)!, root);
         var rootExisted = Directory.Exists(root);
         if (rootExisted && Directory.EnumerateFileSystemEntries(root).Any())
             throw new MdclException(MdclError.Of("ARCHIVE_ROOT_NOT_EMPTY", "Archives", "解压目标不是空目录。", false, root));
@@ -36,6 +38,11 @@ public sealed class SafeArchiveExtractor
         try
         {
             await using var stream = new FileStream(archivePath, FileMode.Open, FileAccess.Read, FileShare.Read, 81920, FileOptions.Asynchronous | FileOptions.SequentialScan);
+            var signature = new byte[2];
+            await stream.ReadExactlyAsync(signature, ct);
+            stream.Position = 0;
+            if (signature[0] == 0x1f && signature[1] == 0x8b)
+                return await ExtractTarGzipAsync(stream, root, policy, ct);
             using var archive = new ZipArchive(stream, ZipArchiveMode.Read, leaveOpen: false);
             if (archive.Entries.Count > policy.MaxEntries)
                 throw Limit("条目数量超过限制。");
@@ -56,6 +63,7 @@ public sealed class SafeArchiveExtractor
                 if (entry.Length > 10 * 1024 * 1024 && entry.CompressedLength > 0 && entry.Length / entry.CompressedLength > policy.MaxCompressionRatio)
                     throw Limit($"条目压缩比异常：{relative}。");
                 var target = SafeTarget(root, relative);
+                EnsureNoReparseAncestors(Path.GetPathRoot(root)!, Path.GetDirectoryName(target)!);
                 if (isDirectory)
                 {
                     Directory.CreateDirectory(target);
@@ -85,6 +93,55 @@ public sealed class SafeArchiveExtractor
         }
     }
 
+    private static async Task<IReadOnlyList<ExtractedEntry>> ExtractTarGzipAsync(
+        FileStream stream, string root, ArchiveExtractionPolicy policy, CancellationToken ct)
+    {
+        using var gzip = new GZipStream(stream, CompressionMode.Decompress, leaveOpen: true);
+        using var reader = new TarReader(gzip, leaveOpen: true);
+        var names = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+        var extracted = new List<ExtractedEntry>();
+        long total = 0;
+        int count = 0;
+        while (await reader.GetNextEntryAsync(copyData: false, cancellationToken: ct) is { } entry)
+        {
+            ct.ThrowIfCancellationRequested();
+            if (++count > policy.MaxEntries) throw Limit("条目数量超过限制。");
+            var relative = Normalize(entry.Name);
+            if (relative.Length == 0) continue;
+            if (!names.Add(relative))
+                throw new MdclException(MdclError.Of("ARCHIVE_DUPLICATE_ENTRY", "Archives", "归档包含重复或大小写冲突条目。", false));
+            if (entry.EntryType is TarEntryType.SymbolicLink or TarEntryType.HardLink)
+                throw new MdclException(MdclError.Of("ARCHIVE_LINK_REJECTED", "Archives", "归档包含链接条目。", false));
+            if (entry.EntryType is not (TarEntryType.Directory or TarEntryType.RegularFile or TarEntryType.V7RegularFile))
+                throw new MdclException(MdclError.Of("ARCHIVE_ENTRY_TYPE_REJECTED", "Archives", "不支持的归档条目类型。", false));
+            if (entry.Length < 0 || entry.Length > policy.MaxEntryBytes) throw Limit("条目过大。");
+            total = checked(total + entry.Length);
+            if (total > policy.MaxTotalBytes || (total > 10 * 1024 * 1024 && total / Math.Max(1, stream.Length) > policy.MaxCompressionRatio))
+                throw Limit("解压总大小或压缩比超过限制。");
+            var target = SafeTarget(root, relative);
+            EnsureNoReparseAncestors(Path.GetPathRoot(root)!, Path.GetDirectoryName(target)!);
+            if (entry.EntryType == TarEntryType.Directory) { Directory.CreateDirectory(target); continue; }
+            Directory.CreateDirectory(Path.GetDirectoryName(target)!);
+            await using (var output = new FileStream(target, FileMode.CreateNew, FileAccess.Write, FileShare.None, 81920, FileOptions.Asynchronous))
+            {
+                if (entry.DataStream is not null) await entry.DataStream.CopyToAsync(output, ct);
+                if (output.Length != entry.Length) throw new InvalidDataException("Truncated TAR entry.");
+                await output.FlushAsync(ct);
+                output.Flush(true);
+            }
+            if (!OperatingSystem.IsWindows())
+            {
+                // Never restore setuid/setgid or archive ownership.
+                var mode = UnixFileMode.UserRead | UnixFileMode.UserWrite | UnixFileMode.GroupRead | UnixFileMode.OtherRead;
+                if (policy.RestoreUnixExecutable && (entry.Mode & UnixFileMode.UserExecute) != 0)
+                    mode |= UnixFileMode.UserExecute | UnixFileMode.GroupExecute | UnixFileMode.OtherExecute;
+                File.SetUnixFileMode(target, mode);
+            }
+            extracted.Add(new ExtractedEntry(relative, entry.Length));
+        }
+        return extracted;
+    }
+
     private static string Normalize(string archiveName)
     {
         var name = archiveName.Replace('\\', '/');
@@ -94,7 +151,7 @@ public sealed class SafeArchiveExtractor
         if (segments.Length == 0) return "";
         foreach (var segment in segments)
         {
-            if (segment is "." or ".." || segment.EndsWith(' ') || segment.EndsWith('.') || WindowsReserved.Contains(segment))
+            if (segment is "." or ".." || segment.EndsWith(' ') || segment.EndsWith('.') || WindowsReserved.Contains(segment.Split('.')[0]))
                 throw Unsafe(archiveName);
             if (segment.Length == 0 || segment.Any(char.IsControl)) throw Unsafe(archiveName);
         }
