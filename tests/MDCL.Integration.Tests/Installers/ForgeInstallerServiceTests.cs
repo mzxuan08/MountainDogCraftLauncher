@@ -26,7 +26,8 @@ public sealed class ForgeInstallerServiceTests
         Assert.Equal(sha, downloader.Artifact?.ExpectedHash);
         Assert.EndsWith(expectedFile, downloader.Artifact!.CandidateUris[0].AbsoluteUri, StringComparison.Ordinal);
         Assert.Equal("java.exe", runner.Executable);
-        Assert.Equal(["-jar", Path.Combine(result.StagingDirectory, "installer.jar"), "--installClient", result.StagingDirectory], runner.Arguments);
+        Assert.Equal(["-Djava.io.tmpdir=" + Path.Combine(result.StagingDirectory, "tmp"),
+            "-jar", Path.Combine(result.StagingDirectory, "installer.jar"), "--installClient", result.StagingDirectory], runner.Arguments);
         Assert.Equal(0, result.Process.ExitCode);
         Assert.True(File.Exists(Path.Combine(result.StagingDirectory, "launcher_profiles.json")));
         Assert.True(File.Exists(Path.Combine(result.StagingDirectory, "versions", game, game + ".json")));

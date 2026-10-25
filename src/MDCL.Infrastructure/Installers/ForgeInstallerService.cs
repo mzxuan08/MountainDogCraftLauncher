@@ -95,8 +95,10 @@ public sealed class ForgeInstallerService
         var artifact = new MDCL.Core.Installation.ArtifactSpec(key, [installerUri], null, sha1, "SHA1",
             request.Kind + "-maven-sha1", "installer.jar", MDCL.Core.Installation.ArtifactTrustLevel.TrustedMetadata);
         var receipt = await _downloader.EnsureAsync(artifact, stage, progress, ct);
+        var temp = Path.Combine(stage, "tmp");
+        Directory.CreateDirectory(temp);
         var result = await _runner.RunAsync(javaExecutable,
-            ["-jar", receipt.Path, "--installClient", stage], stage, TimeSpan.FromMinutes(10), ct);
+            ["-Djava.io.tmpdir=" + temp, "-jar", receipt.Path, "--installClient", stage], stage, TimeSpan.FromMinutes(10), ct);
         if (result.ExitCode != 0)
             throw new MdclException(MdclError.Of("INSTALLER_FAILED", "Forge",
                 $"加载器安装器失败，退出码 {result.ExitCode}。", false, Tail(result.StandardError)));
