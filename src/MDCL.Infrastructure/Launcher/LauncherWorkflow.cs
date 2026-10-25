@@ -25,6 +25,7 @@ public sealed class LauncherWorkflow
     private readonly IInstanceIndex _index;
     private readonly IInstanceLeaseManager _leases;
     private readonly IVersionResolver _resolver;
+    private readonly IVersionMetadataSource _metadata;
     private readonly IInstallPlanner _planner;
     private readonly IOperationCoordinator _coordinator;
     private readonly IJavaDiscovery _javaDiscovery;
@@ -39,7 +40,7 @@ public sealed class LauncherWorkflow
 
     public LauncherWorkflow(
         IAppPaths paths, IInstanceRepository repository, IInstanceIndex index, IInstanceLeaseManager leases,
-        IVersionResolver resolver, IInstallPlanner planner, IOperationCoordinator coordinator,
+        IVersionResolver resolver, IVersionMetadataSource metadata, IInstallPlanner planner, IOperationCoordinator coordinator,
         IJavaDiscovery javaDiscovery, IJavaSelector javaSelector, IJavaRuntimeInstaller javaInstaller,
         IAccountService accounts, IGameProcessService processes, ForgeInstallerService forgeInstaller)
     {
@@ -49,6 +50,7 @@ public sealed class LauncherWorkflow
         _index = index;
         _leases = leases;
         _resolver = resolver;
+        _metadata = metadata;
         _planner = planner;
         _coordinator = coordinator;
         _javaDiscovery = javaDiscovery;
@@ -166,9 +168,19 @@ public sealed class LauncherWorkflow
         await using var lease = await _leases.AcquireAsync(instanceId, "install-forge", ct);
         var vanilla = await _resolver.ResolveAsync(new VersionSelection(manifest.BaseVersion), Target, ct);
         var java = await EnsureJavaAsync(manifest, vanilla, ct);
+        var versionManifest = await _metadata.GetManifestAsync(ct);
+        var entry = versionManifest.Versions.FirstOrDefault(x => string.Equals(x.Id, manifest.BaseVersion, StringComparison.Ordinal))
+            ?? throw new MdclException(MdclError.Of("VERSION_NOT_FOUND", "Forge", $"Mojang 版本列表没有 {manifest.BaseVersion}。", true));
+        var baseJson = (await _metadata.GetVersionAsync(entry, ct)).RawJson;
+        if (!string.IsNullOrWhiteSpace(baseJson))
+        {
+            var baseVersionDirectory = Path.Combine(_paths.SharedRoot, "versions", SafeVersionDirectory(manifest.BaseVersion));
+            Directory.CreateDirectory(baseVersionDirectory);
+            File.WriteAllText(Path.Combine(baseVersionDirectory, manifest.BaseVersion + ".json"), baseJson);
+        }
         progress?.Report(new OperationEvent("forge-install", "installer", 1, OperationState.Running, null, null, "installer-started", DateTimeOffset.UtcNow));
         var installed = await _forgeInstaller.InstallAsync(
-            new ForgeInstallRequest(kind, manifest.BaseVersion, loaderVersion.Trim()), java.Executable, _paths.StagingRoot, null, ct);
+            new ForgeInstallRequest(kind, manifest.BaseVersion, loaderVersion.Trim(), baseJson), java.Executable, _paths.StagingRoot, null, ct);
         await _forgeMerger.MergeAsync(installed.StagingDirectory, _paths.SharedRoot, ct);
         var resolved = await _resolver.ResolveAsync(
             new VersionSelection(manifest.BaseVersion, kind, loaderVersion.Trim()), Target, ct);
@@ -180,6 +192,9 @@ public sealed class LauncherWorkflow
         progress?.Report(new OperationEvent("forge-install", "installer", 2, OperationState.Completed, null, null, "installer-completed", DateTimeOffset.UtcNow));
         return new InstallOutcome(await _repository.LoadAsync(instanceId, ct), resolved);
     }
+
+    private static string SafeVersionDirectory(string value) =>
+        string.Concat(value.Select(c => char.IsLetterOrDigit(c) || c is '.' or '-' or '_' ? c : '_'));
 
     public async Task<JavaRuntime> EnsureJavaAsync(InstanceManifest manifest, ResolvedVersion resolved, CancellationToken ct)
     {

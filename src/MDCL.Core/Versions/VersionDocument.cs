@@ -68,7 +68,7 @@ public sealed record VersionDocument
 
 public sealed record VersionManifestEntry(string Id, string Url, string? Sha1, string Type);
 public sealed record VersionManifest(string LatestRelease, string LatestSnapshot, IReadOnlyList<VersionManifestEntry> Versions);
-public sealed record VersionMetadataRecord(VersionDocument Document, string SourceUrl, string? Sha1);
+public sealed record VersionMetadataRecord(VersionDocument Document, string SourceUrl, string? Sha1, string? RawJson = null);
 
 public sealed record VersionSelection(string BaseVersionId, Instances.LoaderKind LoaderKind = Instances.LoaderKind.Vanilla, string? LoaderVersion = null);
 

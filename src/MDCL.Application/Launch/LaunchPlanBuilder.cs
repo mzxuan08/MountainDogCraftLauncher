@@ -32,10 +32,13 @@ public sealed class LaunchPlanBuilder
         var workingDirectory = Path.GetFullPath(Path.Combine(instanceRootFull, instance.GameDirectory));
         Directory.CreateDirectory(workingDirectory);
         Directory.CreateDirectory(nativesDirectory);
+        var baseVersionDirectory = Path.Combine(shared, "versions", SafeComponent(instance.BaseVersion));
+        var versionJar = Path.Combine(baseVersionDirectory, SafeComponent(instance.BaseVersion) + ".jar");
+        var clientJar = Path.Combine(baseVersionDirectory, "client.jar");
         var classPath = version.Libraries
             .Where(x => x.ArtifactUri is not null)
             .Select(x => Path.Combine(shared, "libraries", x.ClassPathRelativePath))
-            .Append(Path.Combine(shared, "versions", SafeComponent(instance.BaseVersion), "client.jar"))
+            .Append(File.Exists(versionJar) ? versionJar : clientJar)
             .Distinct(StringComparer.Ordinal)
             .ToArray();
         var missing = classPath.Where(x => !File.Exists(x)).ToArray();
@@ -55,7 +58,7 @@ public sealed class LaunchPlanBuilder
             ["game_directory"] = workingDirectory,
             ["assets_root"] = Path.Combine(shared, "assets"),
             ["assets_index_name"] = version.AssetIndex?.Id ?? "",
-            ["version_name"] = version.VersionId,
+            ["version_name"] = instance.BaseVersion,
             ["version_type"] = "release",
             ["user_properties"] = "{}"
         };

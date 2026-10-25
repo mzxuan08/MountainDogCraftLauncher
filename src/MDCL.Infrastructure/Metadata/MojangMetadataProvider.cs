@@ -53,7 +53,7 @@ public sealed class MojangMetadataProvider : IVersionMetadataSource, IAssetIndex
         }
         if (!string.Equals(document.Id, entry.Id, StringComparison.Ordinal))
             throw new MdclException(MdclError.Of("VERSION_ID_MISMATCH", "Metadata", $"请求 {entry.Id}，响应 {document.Id}。", false));
-        return new VersionMetadataRecord(document, entry.Url, actualSha1);
+        return new VersionMetadataRecord(document, entry.Url, actualSha1, json);
     }
 
     public async Task<IReadOnlyList<AssetObject>> GetObjectsAsync(ResolvedAssetIndex index, CancellationToken ct)

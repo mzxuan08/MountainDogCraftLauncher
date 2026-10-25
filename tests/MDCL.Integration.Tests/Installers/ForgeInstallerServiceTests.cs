@@ -21,7 +21,7 @@ public sealed class ForgeInstallerServiceTests
         var downloader = new FakeDownloader(sha);
         var runner = new FakeRunner();
         var service = new ForgeInstallerService(new HttpClient(new Handler(sha)), downloader, runner);
-        var result = await service.InstallAsync(new ForgeInstallRequest(kind, game, loader),
+        var result = await service.InstallAsync(new ForgeInstallRequest(kind, game, loader, """{"id":"1.20.1","marker":true}"""),
             "java.exe", temp.Path, null, CancellationToken.None);
         Assert.Equal(sha, downloader.Artifact?.ExpectedHash);
         Assert.EndsWith(expectedFile, downloader.Artifact!.CandidateUris[0].AbsoluteUri, StringComparison.Ordinal);
@@ -30,7 +30,8 @@ public sealed class ForgeInstallerServiceTests
             "-jar", Path.Combine(result.StagingDirectory, "installer.jar"), "--installClient", result.StagingDirectory], runner.Arguments);
         Assert.Equal(0, result.Process.ExitCode);
         Assert.True(File.Exists(Path.Combine(result.StagingDirectory, "launcher_profiles.json")));
-        Assert.True(File.Exists(Path.Combine(result.StagingDirectory, "versions", game, game + ".json")));
+        var baseJson = await File.ReadAllTextAsync(Path.Combine(result.StagingDirectory, "versions", game, game + ".json"));
+        Assert.Contains("\"marker\":true", baseJson, StringComparison.Ordinal);
     }
 
     [Fact]

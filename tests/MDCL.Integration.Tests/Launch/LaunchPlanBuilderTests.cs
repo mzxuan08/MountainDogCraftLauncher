@@ -55,6 +55,42 @@ public sealed class LaunchPlanBuilderTests
     }
 
     [Fact]
+    public void ForgeUsesBaseVersionJarAndVersionNameForIgnoreList()
+    {
+        using var temp = new TestDirectory();
+        var shared = Path.Combine(temp.Path, "shared");
+        var instance = Path.Combine(temp.Path, "instance");
+        var javaPath = Path.Combine(temp.Path, "java.exe");
+        var baseDir = Path.Combine(shared, "versions", "1.20.1");
+        Directory.CreateDirectory(Path.Combine(shared, "libraries", "g", "a", "1"));
+        Directory.CreateDirectory(baseDir);
+        Directory.CreateDirectory(instance);
+        File.WriteAllText(javaPath, "");
+        File.WriteAllText(Path.Combine(shared, "libraries", "g", "a", "1", "a.jar"), "jar");
+        File.WriteAllText(Path.Combine(baseDir, "client.jar"), "client");
+        File.WriteAllText(Path.Combine(baseDir, "1.20.1.jar"), "version");
+        var manifest = new InstanceManifest
+        {
+            InstanceId = InstanceId.New(), DisplayName = "forge", BaseVersion = "1.20.1",
+            GameDirectory = ".minecraft", CreatedAt = DateTimeOffset.UtcNow
+        };
+        var resolved = new ResolvedVersion("1.20.1-forge-47.2.0", "example.Main",
+            ["-DignoreList=forge-,${version_name}.jar", "-cp", "${classpath}"],
+            ["--version", "${version_name}"],
+            [new ResolvedLibrary("g:a:1", "g/a/1/a.jar", new Uri("https://example.invalid/a"), new string('a', 40), 1, null, [])],
+            [], null, null, null,
+            new JavaRequirement(17, 17, null, CpuArchitecture.X64, [], []), [], "hash");
+        var java = new JavaRuntime("j17", temp.Path, javaPath, 17, "test",
+            CpuArchitecture.X64, "ok", DateTimeOffset.UtcNow);
+        var plan = new LaunchPlanBuilder().Build(manifest, resolved, java, shared, instance,
+            Path.Combine(temp.Path, "natives"), new TargetPlatform(LauncherOperatingSystem.Windows, CpuArchitecture.X64, CpuArchitecture.X64));
+        Assert.Contains(plan.ClassPath, x => x.EndsWith("1.20.1.jar", StringComparison.Ordinal));
+        Assert.DoesNotContain(plan.ClassPath, x => x.EndsWith("client.jar", StringComparison.Ordinal));
+        Assert.Contains("-DignoreList=forge-,1.20.1.jar", plan.JvmArguments);
+        Assert.Contains("1.20.1", plan.GameArguments);
+    }
+
+    [Fact]
     public void MissingDependency_ReturnsPrecheckError()
     {
         using var temp = new TestDirectory();
