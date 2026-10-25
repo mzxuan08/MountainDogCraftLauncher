@@ -16,5 +16,6 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="../Fixtures/versions/**/*.json" Link="Fixtures/versions/%(RecursiveDir)%(Filename)%(Extension)" CopyToOutputDirectory="PreserveNewest" />
+    <None Include="../../docs/evidence/T10-forge-47.2.0-version.json" Link="Fixtures/forge-47.2.0.json" CopyToOutputDirectory="PreserveNewest" />
   </ItemGroup>
 </Project>

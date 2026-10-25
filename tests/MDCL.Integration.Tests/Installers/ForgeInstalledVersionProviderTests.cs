@@ -11,6 +11,26 @@ namespace MDCL.Integration.Tests.Installers;
 public sealed class ForgeInstalledVersionProviderTests
 {
     [Fact]
+    public async Task RealForgeVersionJson_MergesWithVanillaAndKeepsModernArguments()
+    {
+        var baseJson = await File.ReadAllTextAsync(Path.Combine(AppContext.BaseDirectory, "Fixtures", "versions", "parent-1.20.1.json"));
+        var forgeJson = await File.ReadAllTextAsync(Path.Combine(AppContext.BaseDirectory, "Fixtures", "forge-47.2.0.json"));
+        var baseDoc = VersionDocumentParser.Parse(baseJson);
+        var forgeDoc = VersionDocumentParser.Parse(forgeJson);
+        var documents = new Dictionary<string, VersionDocument> { [baseDoc.Id] = baseDoc, [forgeDoc.Id] = forgeDoc };
+        var merged = await new VersionInheritanceResolver().ResolveAsync(forgeDoc.Id,
+            (id, _) => Task.FromResult(documents[id]), CancellationToken.None);
+        var resolved = new ResolvedVersionBuilder().Build(merged,
+            new TargetPlatform(LauncherOperatingSystem.Windows, CpuArchitecture.X64, CpuArchitecture.X64),
+            [new MetadataSource("1.20.1", "fixture://base", null), new MetadataSource(forgeDoc.Id, "fixture://forge", null)]);
+        Assert.Equal("cpw.mods.bootstraplauncher.BootstrapLauncher", resolved.MainClass);
+        Assert.Equal("1.20.1", merged.InheritsFrom);
+        Assert.True(resolved.Libraries.Count > 20);
+        Assert.Contains(resolved.JvmArguments, x => x.StartsWith("-DlibraryDirectory=", StringComparison.Ordinal));
+        Assert.Contains("forgeclient", resolved.GameArguments);
+    }
+
+    [Fact]
     public async Task ReadsInstalledForgeVersionJsonWithMatchingParent()
     {
         using var temp = new TestDirectory();
