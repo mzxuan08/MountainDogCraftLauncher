@@ -9,6 +9,7 @@ using MDCL.Core.Launch;
 using MDCL.Infrastructure.Installers;
 using MDCL.Infrastructure.Launcher;
 using MDCL.Infrastructure.Metadata;
+using MDCL.Infrastructure.Mods;
 
 namespace MDCL.Desktop.ViewModels;
 
@@ -32,6 +33,13 @@ public sealed record ModrinthProjectRow(ModrinthProject Project)
     public string Display => $"{Project.Title}  ·  {Project.Downloads:N0} 下载";
 }
 
+public sealed record LocalModRow(LocalModInfo Info)
+{
+    public string Display => $"{Info.Name}  ·  {Info.Version}  ·  {Info.Loader}  ·  {(Info.Enabled ? "已启用" : "已禁用")}";
+    public string FileName => Info.FileName;
+    public bool Enabled => Info.Enabled;
+}
+
 public sealed record AccountRow(AccountProfile Profile)
 {
     public string Display => $"{Profile.DisplayName}  ·  {(Profile.Kind == AccountKind.Local ? "本地身份" : "微软账号")}";
@@ -43,6 +51,7 @@ public sealed partial class MainWindowViewModel : ObservableObject
     private readonly LauncherWorkflow _workflow;
     private readonly ModrinthProvider _modrinth;
     private readonly ModrinthInstallService _modrinthInstaller;
+    private readonly LocalModService _mods;
     private IGameSession? _session;
     private DateTimeOffset _lastProgress = DateTimeOffset.MinValue;
     private bool _initialized;
@@ -59,12 +68,15 @@ public sealed partial class MainWindowViewModel : ObservableObject
     [ObservableProperty] private AccountRow? _selectedAccount;
     [ObservableProperty] private string _modrinthQuery = "";
     [ObservableProperty] private ModrinthProjectRow? _selectedModrinthProject;
+    [ObservableProperty] private LocalModRow? _selectedLocalMod;
 
-    public MainWindowViewModel(LauncherWorkflow workflow, ModrinthProvider modrinth, ModrinthInstallService modrinthInstaller)
+    public MainWindowViewModel(LauncherWorkflow workflow, ModrinthProvider modrinth,
+        ModrinthInstallService modrinthInstaller, LocalModService mods)
     {
         _workflow = workflow;
         _modrinth = modrinth;
         _modrinthInstaller = modrinthInstaller;
+        _mods = mods;
     }
 
     public string Title => "MDCL";
@@ -74,6 +86,7 @@ public sealed partial class MainWindowViewModel : ObservableObject
     public ObservableCollection<AccountRow> Accounts { get; } = [];
     public ObservableCollection<string> Logs { get; } = [];
     public ObservableCollection<ModrinthProjectRow> ModrinthProjects { get; } = [];
+    public ObservableCollection<LocalModRow> LocalMods { get; } = [];
 
     public async Task InitializeAsync()
     {
@@ -146,6 +159,36 @@ public sealed partial class MainWindowViewModel : ObservableObject
     }
 
     private bool CanInstall() => !IsBusy && SelectedInstance is not null;
+
+    [RelayCommand(CanExecute = nameof(CanManageMods))]
+    private async Task RefreshModsAsync()
+    {
+        var instance = SelectedInstance;
+        if (instance is null) { LocalMods.Clear(); return; }
+        var mods = await _mods.ListAsync(instance.Manifest, CancellationToken.None);
+        LocalMods.Clear();
+        foreach (var mod in mods) LocalMods.Add(new LocalModRow(mod));
+        SelectedLocalMod = LocalMods.FirstOrDefault();
+        Status = LocalMods.Count == 0 ? "当前实例没有本地模组。" : $"当前实例有 {LocalMods.Count} 个本地模组。";
+    }
+
+    private bool CanManageMods() => !IsBusy && SelectedInstance is not null;
+
+    [RelayCommand(CanExecute = nameof(CanToggleMod))]
+    private async Task ToggleModAsync()
+    {
+        var mod = SelectedLocalMod;
+        var instance = SelectedInstance;
+        if (mod is null || instance is null) return;
+        await RunAsync(async () =>
+        {
+            await _mods.SetEnabledAsync(instance.Manifest, mod.FileName, !mod.Enabled, CancellationToken.None);
+            await RefreshModsAsync();
+            Status = mod.Enabled ? $"已禁用模组 {mod.Info.Name}。" : $"已启用模组 {mod.Info.Name}。";
+        });
+    }
+
+    private bool CanToggleMod() => !IsBusy && SelectedLocalMod is not null;
 
     [RelayCommand(CanExecute = nameof(CanSearchModrinth))]
     private async Task SearchModrinthAsync()
@@ -331,11 +374,19 @@ public sealed partial class MainWindowViewModel : ObservableObject
         LoginMicrosoftCommand.NotifyCanExecuteChanged();
         SearchModrinthCommand.NotifyCanExecuteChanged();
         InstallModrinthCommand.NotifyCanExecuteChanged();
+        RefreshModsCommand.NotifyCanExecuteChanged();
+        ToggleModCommand.NotifyCanExecuteChanged();
     }
 
     partial void OnIsBusyChanged(bool value) => NotifyCommands();
     partial void OnIsGameRunningChanged(bool value) => NotifyCommands();
-    partial void OnSelectedInstanceChanged(InstanceRow? value) => NotifyCommands();
+    partial void OnSelectedInstanceChanged(InstanceRow? value)
+    {
+        NotifyCommands();
+        _ = RefreshModsAsync();
+    }
+
+    partial void OnSelectedLocalModChanged(LocalModRow? value) => ToggleModCommand.NotifyCanExecuteChanged();
     partial void OnSelectedAccountChanged(AccountRow? value) => NotifyCommands();
     partial void OnSelectedModrinthProjectChanged(ModrinthProjectRow? value) => InstallModrinthCommand.NotifyCanExecuteChanged();
     partial void OnModrinthQueryChanged(string value) => SearchModrinthCommand.NotifyCanExecuteChanged();

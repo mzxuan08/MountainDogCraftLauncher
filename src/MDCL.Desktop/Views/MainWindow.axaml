@@ -67,6 +67,23 @@
 
           <Border Background="White" CornerRadius="12" Padding="18">
             <StackPanel Spacing="10">
+              <TextBlock Text="本地模组" FontSize="18" FontWeight="SemiBold" />
+              <ListBox ItemsSource="{Binding LocalMods}" SelectedItem="{Binding SelectedLocalMod}" Height="140">
+                <ListBox.ItemTemplate>
+                  <DataTemplate x:DataType="vm:LocalModRow">
+                    <TextBlock Text="{Binding Display}" TextWrapping="Wrap" />
+                  </DataTemplate>
+                </ListBox.ItemTemplate>
+              </ListBox>
+              <Grid ColumnDefinitions="*,*" ColumnSpacing="8">
+                <Button Grid.Column="0" Content="刷新模组" Command="{Binding RefreshModsCommand}" />
+                <Button Grid.Column="1" Content="启用 / 禁用" Command="{Binding ToggleModCommand}" />
+              </Grid>
+            </StackPanel>
+          </Border>
+
+          <Border Background="White" CornerRadius="12" Padding="18">
+            <StackPanel Spacing="10">
               <TextBlock Text="Modrinth 模组" FontSize="18" FontWeight="SemiBold" />
               <Grid ColumnDefinitions="*,Auto" ColumnSpacing="8">
                 <TextBox Grid.Column="0" Text="{Binding ModrinthQuery}" PlaceholderText="搜索模组名称" />
