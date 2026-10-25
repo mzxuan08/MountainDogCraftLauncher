@@ -19,6 +19,7 @@ public sealed class App : Avalonia.Application
             var services = CompositionRoot.CreateServiceProvider();
             var viewModel = services.GetRequiredService<MainWindowViewModel>();
             desktop.MainWindow = new MainWindow { DataContext = viewModel };
+            desktop.Exit += (_, _) => services.Dispose();
             _ = viewModel.InitializeAsync();
         }
 

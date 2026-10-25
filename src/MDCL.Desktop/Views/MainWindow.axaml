@@ -196,6 +196,7 @@
                         Command="{Binding StopCommand}" />
               </Grid>
               <TextBlock Text="{Binding ProgressText}" Foreground="#7E93A6" FontSize="10" TextWrapping="Wrap" />
+              <Button Content="取消当前任务" Command="{Binding CancelCommand}" />
             </StackPanel>
           </Border>
         </Grid>

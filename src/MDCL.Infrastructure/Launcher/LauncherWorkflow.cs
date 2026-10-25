@@ -16,6 +16,7 @@ namespace MDCL.Infrastructure.Launcher;
 
 public sealed record InstallOutcome(InstanceManifest Manifest, ResolvedVersion Resolved);
 public sealed record LaunchOutcome(IGameSession Session, JavaRuntime Java);
+public sealed record LauncherInstance(InstanceManifest Manifest, bool IsInstalled);
 
 public sealed class LauncherWorkflow
 {
@@ -101,6 +102,10 @@ public sealed class LauncherWorkflow
         var listed = await _repository.ListAsync(ct);
         return listed.OrderBy(x => x.DisplayName, StringComparer.CurrentCulture).ToArray();
     }
+
+    public async Task<IReadOnlyList<LauncherInstance>> ListInstanceStatusesAsync(CancellationToken ct) =>
+        (await ListInstancesAsync(ct)).Select(manifest => new LauncherInstance(manifest,
+            File.Exists(Path.Combine(_paths.InstancesRoot, manifest.InstanceId.ToString(), "resolved-version.json")))).ToArray();
 
     public async Task<InstanceManifest> CreateInstanceAsync(string displayName, string baseVersion, CancellationToken ct)
     {

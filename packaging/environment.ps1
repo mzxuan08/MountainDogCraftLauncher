@@ -13,7 +13,9 @@ if (Test-Path -LiteralPath $mdclBundledDotnet) {
 $env:DOTNET_CLI_HOME = Join-Path $mdclRoot 'artifacts/work/dotnet-home'
 $env:TEMP = Join-Path $mdclRoot 'artifacts/work/tmp'
 $env:TMP = $env:TEMP
+$env:NUGET_HTTP_CACHE_PATH = Join-Path $mdclRoot 'artifacts/work/nuget-http'
+$env:NUGET_PLUGINS_CACHE_PATH = Join-Path $mdclRoot 'artifacts/work/nuget-plugins'
 $env:AVALONIA_TELEMETRY_OPTOUT = '1'
 $env:DOTNET_CLI_TELEMETRY_OPTOUT = '1'
 $env:DOTNET_ADD_GLOBAL_TOOLS_TO_PATH = '0'
-New-Item -ItemType Directory -Force -Path $env:DOTNET_CLI_HOME, $env:TEMP | Out-Null
+New-Item -ItemType Directory -Force -Path $env:DOTNET_CLI_HOME, $env:TEMP, $env:NUGET_HTTP_CACHE_PATH, $env:NUGET_PLUGINS_CACHE_PATH | Out-Null
