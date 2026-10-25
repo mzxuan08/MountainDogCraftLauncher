@@ -48,8 +48,9 @@ public sealed class InstanceLifecycleService(IAppPaths paths, IInstanceRepositor
         var name=ValidateName(displayName);
         await using var lease=await leases.AcquireAsync(id,"copy",ct);
         var original=await repository.LoadAsync(id,ct);
-        if(File.Exists(Path.Combine(InstancePath(paths.InstancesRoot,id),MDCL.Infrastructure.Installers.MrpackImportService.PendingFileName)))
-            throw Error("MRPACK_IMPORT_INCOMPLETE","请先恢复完成整合包导入，再复制实例。");
+        if(File.Exists(Path.Combine(InstancePath(paths.InstancesRoot,id),MDCL.Infrastructure.Installers.MrpackImportService.PendingFileName)) ||
+           File.Exists(Path.Combine(InstancePath(paths.InstancesRoot,id),ResolvedVersionStore.PendingFileName)))
+            throw Error("INSTANCE_INSTALL_INCOMPLETE","请先恢复完成安装或整合包导入，再复制实例。");
         if (Path.IsPathRooted(original.GameDirectory)) throw Error("INSTANCE_COPY_EXTERNAL_UNSUPPORTED","外部游戏目录需先迁回受管实例后复制。");
         var source=InstancePath(paths.InstancesRoot,id);
         var game=Path.GetFullPath(Path.Combine(source,original.GameDirectory));

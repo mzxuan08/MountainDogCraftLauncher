@@ -45,11 +45,11 @@ public sealed class UpdateInstaller
                 ct.ThrowIfCancellationRequested();
                 if (Directory.Exists(target))
                 {
-                    Directory.Move(target, backup);
+                    await MoveDirectoryAsync(target, backup, ct);
                     createdBackup = backup;
                 }
                 await SaveStateAsync(statePath, transaction with { State = "BackupCreated" }, CancellationToken.None);
-                Directory.Move(payload, target);
+                await MoveDirectoryAsync(payload, target, ct);
                 await SaveStateAsync(statePath, transaction with { State = "NewPlaced" }, CancellationToken.None);
                 if (_healthCheck is not null && !await _healthCheck(target, ct))
                     throw new MdclException(MdclError.Of("UPDATE_HEALTHCHECK_FAILED", "Update", "新版本健康检查失败，正在恢复旧版本。", true));
@@ -85,8 +85,8 @@ public sealed class UpdateInstaller
         var failed = target + ".failed-" + Guid.NewGuid().ToString("N");
         try
         {
-            if (Directory.Exists(target)) Directory.Move(target, failed);
-            Directory.Move(result.BackupDirectory, target);
+            if (Directory.Exists(target)) await MoveDirectoryAsync(target, failed, ct);
+            await MoveDirectoryAsync(result.BackupDirectory, target, ct);
             try { if (Directory.Exists(failed)) Directory.Delete(failed, true); } catch (IOException) { }
             if (result.StatePath is { } statePath && File.Exists(statePath))
             {
@@ -96,7 +96,7 @@ public sealed class UpdateInstaller
         }
         catch (Exception ex) when (ex is IOException or UnauthorizedAccessException)
         {
-            if (!Directory.Exists(target) && Directory.Exists(failed)) Directory.Move(failed, target);
+            if (!Directory.Exists(target) && Directory.Exists(failed)) await MoveDirectoryAsync(failed, target, CancellationToken.None);
             throw new MdclException(MdclError.Of("UPDATE_ROLLBACK_FAILED", "Update", "回退失败，当前目录未删除。", false), ex);
         }
     }
@@ -114,6 +114,20 @@ public sealed class UpdateInstaller
         else if (!Directory.Exists(state.Target))
             throw new MdclException(MdclError.Of("UPDATE_RECOVERY_UNAVAILABLE", "Update", "没有可恢复的应用或备份。", false));
         else await SaveStateAsync(statePath, state with { State = "RolledBack" }, ct);
+    }
+
+    private static async Task MoveDirectoryAsync(string source, string target, CancellationToken ct)
+    {
+        // Windows scanners can retain a just-read executable/directory briefly.
+        // Retry only known sharing/access errors and preserve the original failure.
+        for (var attempt = 0; ; attempt++)
+        {
+            ct.ThrowIfCancellationRequested();
+            try { Directory.Move(source, target); return; }
+            catch (IOException error) when (OperatingSystem.IsWindows() && attempt < 5 &&
+                (error.HResult & 0xffff) is 5 or 32 or 33)
+            { await Task.Delay(50 << attempt, ct); }
+        }
     }
 
     private static void ValidateTarget(string target)

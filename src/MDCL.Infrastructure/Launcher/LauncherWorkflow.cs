@@ -107,6 +107,7 @@ public sealed class LauncherWorkflow
     public async Task<IReadOnlyList<LauncherInstance>> ListInstanceStatusesAsync(CancellationToken ct) =>
         (await ListInstancesAsync(ct)).Select(manifest => new LauncherInstance(manifest,
             File.Exists(Path.Combine(_paths.InstancesRoot, manifest.InstanceId.ToString(), "resolved-version.json")) &&
+            !File.Exists(Path.Combine(_paths.InstancesRoot, manifest.InstanceId.ToString(), ResolvedVersionStore.PendingFileName)) &&
             !File.Exists(Path.Combine(_paths.InstancesRoot, manifest.InstanceId.ToString(), MrpackImportService.PendingFileName)))).ToArray();
 
     public async Task<InstanceManifest> CreateInstanceAsync(string displayName, string baseVersion, CancellationToken ct)
@@ -142,8 +143,8 @@ public sealed class LauncherWorkflow
         if (result.State != OperationState.Completed)
             throw new MdclException(result.Error ?? MdclError.Of("INSTALL_FAILED", "Installation", "安装未完成。", true));
         var instanceDirectory = Path.Combine(_paths.InstancesRoot, instanceId.ToString());
-        await _resolvedStore.SaveAsync(instanceDirectory, resolved, ct);
-        var revision = await _repository.SaveAsync(manifest with { Revision = manifest.Revision }, manifest.Revision, ct);
+        await _resolvedStore.CommitAsync(instanceDirectory, resolved,
+            () => _repository.SaveAsync(manifest, manifest.Revision, ct), ct);
         await _index.RebuildAsync(ct);
         return new InstallOutcome(await _repository.LoadAsync(instanceId, ct), resolved);
     }
@@ -160,8 +161,8 @@ public sealed class LauncherWorkflow
         if (result.State != OperationState.Completed)
             throw new MdclException(result.Error ?? MdclError.Of("FABRIC_INSTALL_FAILED", "Fabric", "Fabric 安装未完成。", true));
         var instanceDirectory = Path.Combine(_paths.InstancesRoot, instanceId.ToString());
-        await _resolvedStore.SaveAsync(instanceDirectory, resolved, ct);
-        await _repository.SaveAsync(manifest with { Loader = new LoaderDescriptor(LoaderKind.Fabric, resolved.LoaderVersion) }, manifest.Revision, ct);
+        await _resolvedStore.CommitAsync(instanceDirectory, resolved,
+            () => _repository.SaveAsync(manifest with { Loader = new LoaderDescriptor(LoaderKind.Fabric, resolved.LoaderVersion) }, manifest.Revision, ct), ct);
         await _index.RebuildAsync(ct);
         return new InstallOutcome(await _repository.LoadAsync(instanceId, ct), resolved);
     }
@@ -192,8 +193,8 @@ public sealed class LauncherWorkflow
         var resolved = await _resolver.ResolveAsync(
             new VersionSelection(manifest.BaseVersion, kind, loaderVersion.Trim()), Target, ct);
         var instanceDirectory = Path.Combine(_paths.InstancesRoot, instanceId.ToString());
-        await _resolvedStore.SaveAsync(instanceDirectory, resolved, ct);
-        await _repository.SaveAsync(manifest with { Loader = new LoaderDescriptor(kind, loaderVersion.Trim()) }, manifest.Revision, ct);
+        await _resolvedStore.CommitAsync(instanceDirectory, resolved,
+            () => _repository.SaveAsync(manifest with { Loader = new LoaderDescriptor(kind, loaderVersion.Trim()) }, manifest.Revision, ct), ct);
         await _index.RebuildAsync(ct);
         try { Directory.Delete(installed.StagingDirectory, true); } catch (IOException) { }
         progress?.Report(new OperationEvent("forge-install", "installer", 2, OperationState.Completed, null, null, "installer-completed", DateTimeOffset.UtcNow));
@@ -278,6 +279,7 @@ public sealed class LauncherWorkflow
         if(directory is null) return;
         var full=Path.GetFullPath(directory);
         if(Path.GetDirectoryName(full)!=Path.Combine(_paths.DataRoot,"sessions") || !Guid.TryParseExact(Path.GetFileName(full),"N",out _)) return;
-        try { if(Directory.Exists(full)) Directory.Delete(full,true); } catch(IOException) { }
+        try { if(Directory.Exists(full)) Directory.Delete(full,true); }
+        catch(Exception ex) when(ex is IOException or UnauthorizedAccessException) { }
     }
 }
