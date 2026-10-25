@@ -18,7 +18,7 @@
 ## 发布边界
 
 - 自有源码 MIT，第三方组件逐项许可；发布不包含 Minecraft 客户端和 Java 分发包。
-- 已注册 MDCL 专属 Microsoft public client 并内置其公开 Client ID；Mojang AppID 审核待提交/批准，真实微软登录 U01 未验证。197 项 .NET 测试与 2 项封装测试通过，协议 fixture 不能替代账号验收。正式启动入口仅允许有效微软会话，保留本地资料但禁止用于绕过验证。
+- 已注册 MDCL 专属 Microsoft public client 并内置其公开 Client ID；Mojang AppID 审核已提交、待批准，真实微软登录 U01 未验证。197 项 .NET 测试与 2 项封装测试通过，协议 fixture 不能替代账号验收。正式启动入口仅允许有效微软会话，保留本地资料但禁止用于绕过验证。
 - 更新器可用临时测试钥匙验签及回退，但这不构成生产信任链。生产根密钥、轮换/撤销、平台签名仍待接入；不启用桌面自动更新。
 - Mac 产物明确标为 UNSIGNED / UNVERIFIED；交叉编译不代表运行或 Gatekeeper 通过。远程 CI 状态以 GitHub Actions 实际记录为准。
 - 全部原始验收目标仍保留在 docs/MDCL-验收矩阵.md；未覆盖的磁盘满、断电、多 DPI、跨卷及性能压力场景不宣称通过。
