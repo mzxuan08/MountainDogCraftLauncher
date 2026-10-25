@@ -30,6 +30,8 @@ try {
         if (Test-Path -LiteralPath $output) { Remove-Item -LiteralPath $output -Recurse -Force }
         & $dotnet publish src/MDCL.Desktop/MDCL.Desktop.csproj -c $Configuration -r $rid --self-contained true --no-restore -o $output
         if ($LASTEXITCODE -ne 0) { throw "Publish failed for $rid." }
+        & $dotnet publish src/MDCL.Updater/MDCL.Updater.csproj -c $Configuration -r $rid --self-contained true --no-restore -o (Join-Path $output 'updater')
+        if ($LASTEXITCODE -ne 0) { throw "Updater publish failed for $rid." }
     }
 }
 finally {

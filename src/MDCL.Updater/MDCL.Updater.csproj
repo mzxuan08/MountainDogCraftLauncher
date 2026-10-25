@@ -3,6 +3,7 @@
     <OutputType>Exe</OutputType>
     <RootNamespace>MDCL.Updater</RootNamespace>
     <AssemblyName>MDCL.Updater</AssemblyName>
+    <RuntimeIdentifiers>win-x64;osx-arm64;osx-x64</RuntimeIdentifiers>
   </PropertyGroup>
   <ItemGroup>
     <ProjectReference Include="../MDCL.Core/MDCL.Core.csproj" />
