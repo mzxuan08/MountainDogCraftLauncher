@@ -39,6 +39,17 @@ OutputConsumerPath outputConsumer = new OutputConsumerPath.Builder(tmpFile)
 - JDK 17 本身无法创建该 ZipFS；
 - Fabric 0.16.14 的 Builder 在单纯路径调用下必然失败。
 
+## 额外排除：java.io.tmpdir
+
+使用同一 Fabric 0.16.14 `OutputConsumerPath.Builder(...).assumeArchive(true)` 探针，将 `java.io.tmpdir`/TEMP/TMP 指向当前受限的系统临时目录 `C:\Users\<user>\AppData\Local\Temp`：
+
+```text
+java.io.tmpdir=C:\Users\<user>\AppData\Local\Temp
+OPEN_OK true 22
+```
+
+仍成功。因此不是 Java 临时目录权限或 ZipFS 对临时目录的依赖导致。
+
 ## 仍未定位
 
 失败只在 Fabric Loader 的游戏进程内出现。游戏进程与独立探针的差异包括：
