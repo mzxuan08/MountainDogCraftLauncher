@@ -15,16 +15,12 @@ namespace MDCL.Desktop.ViewModels;
 
 public sealed record InstanceRow(InstanceManifest Manifest, bool IsInstalled = false)
 {
-    public string Display
-    {
-        get
-        {
-            var loader = Manifest.Loader.Kind == LoaderKind.Vanilla
-                ? "原版"
-                : $"{Manifest.Loader.Kind} {Manifest.Loader.Version}";
-            return $"{Manifest.DisplayName}  ·  {Manifest.BaseVersion}  ·  {loader}{(IsInstalled ? "" : "  ·  未安装")}";
-        }
-    }
+    public string LoaderDisplay => Manifest.Loader.Kind == LoaderKind.Vanilla
+        ? "原版"
+        : $"{Manifest.Loader.Kind} {Manifest.Loader.Version}";
+    public string InstallState => IsInstalled ? "已安装" : "未安装";
+    public string Details => $"{Manifest.BaseVersion}  ·  {LoaderDisplay}  ·  {InstallState}";
+    public string Display => $"{Manifest.DisplayName}  ·  {Details}";
     public InstanceId Id => Manifest.InstanceId;
 }
 
@@ -140,11 +136,11 @@ public sealed partial class MainWindowViewModel : ObservableObject
 
     private bool CanCreate() => !IsBusy && !string.IsNullOrWhiteSpace(NewInstanceName) && !string.IsNullOrWhiteSpace(NewVersion);
 
-    [RelayCommand(CanExecute = nameof(CanInstall))]
+    [RelayCommand]
     private async Task InstallAsync()
     {
         var instance = SelectedInstance;
-        if (instance is null) return;
+        if (instance is null) { Status = "请先在左侧选择实例，或先创建一个实例。"; return; }
         await RunAsync(async () =>
         {
             var progress = new Progress<OperationEvent>(evt =>
@@ -162,8 +158,6 @@ public sealed partial class MainWindowViewModel : ObservableObject
             Status = $"实例“{instance.Manifest.DisplayName}”安装完成。";
         });
     }
-
-    private bool CanInstall() => !IsBusy && SelectedInstance is not null;
 
     [RelayCommand(CanExecute = nameof(CanImportMrpack))]
     private async Task ImportMrpackAsync()
@@ -278,11 +272,11 @@ public sealed partial class MainWindowViewModel : ObservableObject
 
     private bool CanInstallForge() => !IsBusy && SelectedInstance is not null && !string.IsNullOrWhiteSpace(ForgeVersion);
 
-    [RelayCommand(CanExecute = nameof(CanInstall))]
+    [RelayCommand]
     private async Task InstallFabricAsync()
     {
         var instance = SelectedInstance;
-        if (instance is null) return;
+        if (instance is null) { Status = "请先在左侧选择实例，或先创建一个实例。"; return; }
         await RunAsync(async () =>
         {
             var progress = new Progress<OperationEvent>(evt =>
@@ -301,12 +295,13 @@ public sealed partial class MainWindowViewModel : ObservableObject
         });
     }
 
-    [RelayCommand(CanExecute = nameof(CanLaunch))]
+    [RelayCommand]
     private async Task LaunchAsync()
     {
         var instance = SelectedInstance;
         var account = SelectedAccount;
-        if (instance is null || account is null) return;
+        if (instance is null) { Status = "请先在左侧选择实例。"; return; }
+        if (account is null) { Status = "请先在“账号”页选择或添加一个账号。"; return; }
         await RunAsync(async () =>
         {
             Status = "正在准备 Java、natives 与启动参数…";
@@ -318,18 +313,14 @@ public sealed partial class MainWindowViewModel : ObservableObject
         });
     }
 
-    private bool CanLaunch() => !IsBusy && !IsGameRunning && SelectedInstance is not null && SelectedAccount is not null;
-
-    [RelayCommand(CanExecute = nameof(CanStop))]
+    [RelayCommand]
     private async Task StopAsync()
     {
         var session = _session;
-        if (session is null) return;
+        if (session is null) { Status = "当前没有运行中的游戏进程。"; return; }
         Status = "正在停止当前游戏进程…";
         await session.StopAsync(CancellationToken.None);
     }
-
-    private bool CanStop() => _session is not null && IsGameRunning;
 
     [RelayCommand(CanExecute = nameof(CanAddLocal))]
     private async Task AddLocalAsync()
