@@ -79,6 +79,39 @@ public sealed class JavaIntegrationTests
         Assert.StartsWith("managed:", result.RuntimeId, StringComparison.Ordinal);
         Assert.True(File.Exists(result.Executable));
         Assert.StartsWith(Path.Combine(temp.Path, "runtimes"), result.Home, StringComparison.OrdinalIgnoreCase);
+        var rediscovered = await new JavaDiscovery(new FakeProbe(), Path.Combine(temp.Path, "runtimes")).DiscoverAsync(CancellationToken.None);
+        Assert.Contains(rediscovered, x => x.Runtime?.RuntimeId == result.RuntimeId && x.Runtime.IsManaged);
+        // A repeated managed installation validates and reuses the destination.
+        Assert.Equal(result.RuntimeId, (await installer.InstallAsync(requirement,
+            new TargetPlatform(LauncherOperatingSystem.Windows, CpuArchitecture.X64, CpuArchitecture.X64), null, CancellationToken.None)).RuntimeId);
+    }
+
+    [Fact]
+    public async Task FailedFinalProbe_DoesNotPoisonRuntimeDestination()
+    {
+        using var temp = new TestDirectory();
+        var archive = Path.Combine(temp.Path, "jdk.zip");
+        using (var zip = ZipFile.Open(archive, ZipArchiveMode.Create))
+        await using (var writer = new StreamWriter(zip.CreateEntry("jdk/bin/" + (OperatingSystem.IsWindows() ? "java.exe" : "java")).Open()))
+            await writer.WriteAsync("fake");
+        var probe = new FailFinalProbe();
+        var installer = new JavaRuntimeInstaller(new FakePackageSource(), new CopyingDownloader(archive), probe,
+            Path.Combine(temp.Path, "runtimes"), Path.Combine(temp.Path, "staging"));
+        var requirement = JavaRequirementFactory.Create(17, CpuArchitecture.X64, [new JavaConstraint(17,null,"game")]);
+        var target = new TargetPlatform(LauncherOperatingSystem.Windows, CpuArchitecture.X64, CpuArchitecture.X64);
+        await Assert.ThrowsAsync<MDCL.Core.Errors.MdclException>(() => installer.InstallAsync(requirement, target, null, CancellationToken.None));
+        Assert.Empty(Directory.EnumerateFiles(Path.Combine(temp.Path, "runtimes"), "java*", SearchOption.AllDirectories));
+        var recovered = await installer.InstallAsync(requirement, target, null, CancellationToken.None);
+        Assert.True(recovered.IsManaged);
+        Assert.True(File.Exists(recovered.Executable));
+    }
+
+    private sealed class FailFinalProbe : IJavaProbe
+    {
+        private int _calls;
+        public Task<JavaProbeResult> ProbeAsync(string path, CancellationToken ct) => ++_calls == 2
+            ? Task.FromResult(new JavaProbeResult(null, "broken", "injected final probe failure"))
+            : new FakeProbe().ProbeAsync(path, ct);
     }
 
     private sealed class FixedLocations(params string[] paths) : IJavaSearchLocations

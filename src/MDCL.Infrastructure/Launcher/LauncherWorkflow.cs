@@ -208,6 +208,7 @@ public sealed class LauncherWorkflow
         var candidates = results.Where(x => x.Runtime is not null).Select(x => x.Runtime!).ToArray();
         var selection = await _javaSelector.SelectAsync(resolved.JavaRequirement, manifest.JavaPolicy, candidates, ct);
         if (selection.Selected is not null) return selection.Selected;
+        if (selection.Error is { Retryable: false } error) throw new MdclException(error);
         var installed = await _javaInstaller.InstallAsync(resolved.JavaRequirement, Target, null, ct);
         return installed;
     }

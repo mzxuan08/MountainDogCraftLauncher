@@ -11,6 +11,18 @@ namespace MDCL.Integration.Tests.Metadata;
 public sealed class MojangMetadataProviderTests
 {
     [Fact]
+    public async Task MutableManifest_IsRefreshedAcrossLauncherStarts()
+    {
+        using var temp = new TestDirectory();
+        await File.WriteAllTextAsync(Path.Combine(temp.Path, "version_manifest_v2.json"),
+            """{"latest":{"release":"old","snapshot":"old"},"versions":[]}""");
+        var handler = new CountingHandler(Encoding.UTF8.GetBytes("""{"latest":{"release":"new","snapshot":"new"},"versions":[]}"""));
+        using var http = new HttpClient(handler);
+        Assert.Equal("new", (await new MojangMetadataProvider(http, temp.Path).GetManifestAsync(CancellationToken.None)).LatestRelease);
+        Assert.Equal(1, handler.Requests);
+    }
+
+    [Fact]
     public async Task VerifiedVersionJson_IsCachedAndReused()
     {
         using var temp = new TestDirectory();

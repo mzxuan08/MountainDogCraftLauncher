@@ -43,7 +43,17 @@ public sealed class JavaDiscovery : IJavaDiscovery
         await Task.WhenAll(paths.Select(async (path, index) =>
         {
             await gate.WaitAsync(ct);
-            try { results[index] = await _probe.ProbeAsync(path, ct); }
+            try
+            {
+                var result = await _probe.ProbeAsync(path, ct);
+                if (result.Runtime is { } runtime)
+                {
+                    var relative = Path.GetRelativePath(_managedRoot, Path.GetFullPath(runtime.Home));
+                    if (!Path.IsPathRooted(relative) && relative != ".." && !relative.StartsWith(".." + Path.DirectorySeparatorChar, StringComparison.Ordinal))
+                        result = result with { Runtime = runtime with { IsManaged = true, RuntimeId = "managed:" + Path.GetFileName(runtime.Home) } };
+                }
+                results[index] = result;
+            }
             finally { gate.Release(); }
         }));
         return results;

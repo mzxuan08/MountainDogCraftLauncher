@@ -14,6 +14,7 @@ public sealed class MojangMetadataProvider : IVersionMetadataSource, IAssetIndex
     private readonly string _cacheDirectory;
     private readonly SemaphoreSlim _manifestLock = new(1, 1);
     private VersionManifest? _manifest;
+    private DateTimeOffset _manifestFetchedAt;
 
     public MojangMetadataProvider(HttpClient http, string cacheDirectory)
     {
@@ -23,14 +24,15 @@ public sealed class MojangMetadataProvider : IVersionMetadataSource, IAssetIndex
 
     public async Task<VersionManifest> GetManifestAsync(CancellationToken ct)
     {
-        if (_manifest is not null) return _manifest;
+        if (_manifest is not null && DateTimeOffset.UtcNow - _manifestFetchedAt < TimeSpan.FromMinutes(15)) return _manifest;
         await _manifestLock.WaitAsync(ct);
         try
         {
-            if (_manifest is not null) return _manifest;
+            if (_manifest is not null && DateTimeOffset.UtcNow - _manifestFetchedAt < TimeSpan.FromMinutes(15)) return _manifest;
             var cache = Path.Combine(_cacheDirectory, "version_manifest_v2.json");
             var bytes = await ReadWithCacheAsync(VersionManifestUri, cache, null, ct);
             _manifest = VersionManifestParser.Parse(Encoding.UTF8.GetString(bytes));
+            _manifestFetchedAt = DateTimeOffset.UtcNow;
             return _manifest;
         }
         finally { _manifestLock.Release(); }
@@ -83,10 +85,16 @@ public sealed class MojangMetadataProvider : IVersionMetadataSource, IAssetIndex
 
     private async Task<byte[]> ReadWithCacheAsync(Uri uri, string cachePath, string? expectedSha1, CancellationToken ct)
     {
+        byte[]? offlineManifest = null;
         if (File.Exists(cachePath))
         {
             var cached = await File.ReadAllBytesAsync(cachePath, ct);
-            if (expectedSha1 is null || string.Equals(Hash(cached), expectedSha1, StringComparison.OrdinalIgnoreCase)) return cached;
+            if (expectedSha1 is not null && string.Equals(Hash(cached), expectedSha1, StringComparison.OrdinalIgnoreCase)) return cached;
+            if (expectedSha1 is null)
+            {
+                try { _ = VersionManifestParser.Parse(Encoding.UTF8.GetString(cached)); offlineManifest = cached; }
+                catch (Exception ex) when (ex is System.Text.Json.JsonException or KeyNotFoundException or InvalidOperationException) { }
+            }
         }
         try
         {
@@ -103,6 +111,7 @@ public sealed class MojangMetadataProvider : IVersionMetadataSource, IAssetIndex
             if (expectedSha1 is not null && !string.Equals(Hash(bytes), expectedSha1, StringComparison.OrdinalIgnoreCase))
                 throw new MdclException(MdclError.Of("VERSION_METADATA_HASH_MISMATCH", "Metadata",
                     "官方版本 JSON 的 SHA-1 与版本清单不符。", true, $"expected={expectedSha1}", $"actual={Hash(bytes)}"));
+            if (expectedSha1 is null) _ = VersionManifestParser.Parse(Encoding.UTF8.GetString(bytes));
             Directory.CreateDirectory(Path.GetDirectoryName(cachePath)!);
             var temporary = cachePath + "." + Guid.NewGuid().ToString("N") + ".tmp";
             try
@@ -115,12 +124,15 @@ public sealed class MojangMetadataProvider : IVersionMetadataSource, IAssetIndex
         }
         catch (HttpRequestException ex)
         {
+            if (offlineManifest is not null) return offlineManifest;
             throw new MdclException(MdclError.Of("VERSION_METADATA_NETWORK", "Metadata", "无法读取官方版本元数据。", true, uri.Host), ex);
         }
         catch (TaskCanceledException) when (!ct.IsCancellationRequested)
         {
+            if (offlineManifest is not null) return offlineManifest;
             throw new MdclException(MdclError.Of("VERSION_METADATA_TIMEOUT", "Metadata", "读取官方版本元数据超时。", true, uri.Host));
         }
+        catch (MdclException ex) when (offlineManifest is not null && ex.Error.Retryable) { return offlineManifest; }
     }
 
     private static string Hash(byte[] bytes) => Convert.ToHexString(SHA1.HashData(bytes)).ToLowerInvariant();
