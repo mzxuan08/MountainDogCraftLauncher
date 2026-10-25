@@ -16,6 +16,32 @@ namespace MDCL.Desktop.Tests;
 public sealed class WorkflowInteractionTests
 {
     [Fact]
+    public async Task JavaDiscovery_UsesBindingOfInstanceSelectedAfterAwait()
+    {
+        using var context = new Context();
+        var vm = context.ViewModel;
+        await vm.InitializeAsync();
+        await vm.CreateCommand.ExecuteAsync(null);
+        vm.SelectedJavaRuntime = new("java-a", "A");
+        await vm.SaveInstanceSettingsCommand.ExecuteAsync(null);
+        var first = vm.SelectedInstance;
+        vm.NewInstanceName = "B";
+        await vm.CreateCommand.ExecuteAsync(null);
+        vm.SelectedJavaRuntime = new("java-b", "B");
+        await vm.SaveInstanceSettingsCommand.ExecuteAsync(null);
+        var second = vm.SelectedInstance;
+        vm.SelectedInstance = first;
+        var discovering = vm.RefreshJavaCommand.ExecuteAsync(null);
+        await context.Discovery.Started.Task.WaitAsync(TimeSpan.FromSeconds(5));
+        vm.SelectedInstance = second;
+        context.Discovery.Release.TrySetResult([]);
+        await discovering.WaitAsync(TimeSpan.FromSeconds(5));
+        Assert.Equal("java-b", vm.SelectedJavaRuntime?.RuntimeId);
+        await vm.SaveInstanceSettingsCommand.ExecuteAsync(null);
+        Assert.Equal("java-b", vm.SelectedInstance?.Manifest.JavaPolicy.BoundRuntimeId);
+    }
+
+    [Fact]
     public void ImportWithoutReviewedPreview_IsDisabled()
     {
         using var context = new Context();
@@ -80,6 +106,7 @@ public sealed class WorkflowInteractionTests
         private readonly string? _previous = Environment.GetEnvironmentVariable("MDCL_DATA_ROOT");
         private readonly ServiceProvider _services;
         public BlockingResolver Resolver { get; } = new();
+        public BlockingJavaDiscovery Discovery { get; } = new();
         public MainWindowViewModel ViewModel { get; }
         public Context()
         {
@@ -87,7 +114,7 @@ public sealed class WorkflowInteractionTests
             _services = CompositionRoot.CreateServiceProvider();
             var workflow = new LauncherWorkflow(Get<IAppPaths>(), Get<IInstanceRepository>(), Get<IInstanceIndex>(), Get<IInstanceLeaseManager>(),
                 Resolver, Get<IVersionMetadataSource>(), Get<IInstallPlanner>(), Get<IOperationCoordinator>(),
-                Get<IJavaDiscovery>(), Get<IJavaSelector>(), Get<IJavaRuntimeInstaller>(), Get<IAccountService>(), Get<IGameProcessService>(), Get<ForgeInstallerService>());
+                Discovery, Get<IJavaSelector>(), Get<IJavaRuntimeInstaller>(), Get<IAccountService>(), Get<IGameProcessService>(), Get<ForgeInstallerService>());
             ViewModel = new MainWindowViewModel(workflow, Get<ModrinthProvider>(), Get<ModrinthInstallService>(), Get<LocalModService>(), Get<MrpackImportService>(), Get<MDCL.Infrastructure.Storage.InstanceLifecycleService>(), Get<MDCL.Infrastructure.Diagnostics.DiagnosticArchiveService>());
         }
         private T Get<T>() where T : notnull => _services.GetRequiredService<T>();
@@ -97,6 +124,17 @@ public sealed class WorkflowInteractionTests
             _services.Dispose();
             Environment.SetEnvironmentVariable("MDCL_DATA_ROOT", _previous);
             try { Directory.Delete(_root, true); } catch (IOException) { }
+        }
+    }
+
+    private sealed class BlockingJavaDiscovery : IJavaDiscovery
+    {
+        public TaskCompletionSource Started { get; } = new(TaskCreationOptions.RunContinuationsAsynchronously);
+        public TaskCompletionSource<IReadOnlyList<JavaProbeResult>> Release { get; } = new(TaskCreationOptions.RunContinuationsAsynchronously);
+        public Task<IReadOnlyList<JavaProbeResult>> DiscoverAsync(CancellationToken ct)
+        {
+            Started.TrySetResult();
+            return Release.Task.WaitAsync(ct);
         }
     }
 }

@@ -38,6 +38,40 @@ public sealed class App : Avalonia.Application
                     catch (Exception) { desktop.Shutdown(1); }
                 };
             }
+            else if (healthArgs.Length == 2 && healthArgs[0] == "--capture-ui")
+            {
+                desktop.MainWindow.ShowActivated = false;
+                desktop.MainWindow.Opened += async (_, _) =>
+                {
+                    try
+                    {
+                        await viewModel.InitializeAsync();
+                        var directory = Path.GetFullPath(healthArgs[1]);
+                        Directory.CreateDirectory(directory);
+                        foreach (var width in new[] { 1200, 1100 })
+                        {
+                            desktop.MainWindow.Width = width;
+                            desktop.MainWindow.Height = width == 1200 ? 800 : 720;
+                            for (var page = 0; page < 7; page++)
+                            {
+                                viewModel.SelectedTabIndex = page;
+                                await Task.Delay(200);
+                                var size = desktop.MainWindow.ClientSize;
+                                using var bitmap = new Avalonia.Media.Imaging.RenderTargetBitmap(
+                                    new PixelSize((int)size.Width, (int)size.Height), new Vector(96, 96));
+                                bitmap.Render(desktop.MainWindow);
+                                bitmap.Save(Path.Combine(directory, $"desktop-{width}-page-{page}.png"), Avalonia.Media.Imaging.PngBitmapEncoderOptions.Default);
+                            }
+                        }
+                        desktop.Shutdown(0);
+                    }
+                    catch (Exception error)
+                    {
+                        Console.Error.WriteLine(error.Message);
+                        desktop.Shutdown(1);
+                    }
+                };
+            }
             else _ = viewModel.InitializeAsync();
         }
 

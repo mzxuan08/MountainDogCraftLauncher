@@ -106,7 +106,7 @@ public sealed partial class MainWindowViewModel : ObservableObject
     public string Subtitle => "Minecraft Java Edition · Windows / macOS";
     public string RunState => IsGameRunning ? "运行中" : "未运行";
     public bool HasActiveWork => IsBusy || IsGameRunning;
-    public string[] Navigation { get; } = ["实例", "安装", "账号", "任务", "设置"];
+    public string[] Navigation { get; } = ["启动", "加载器", "模组", "整合包", "账号", "日志", "设置"];
     public ObservableCollection<InstanceRow> Instances { get; } = [];
     public ObservableCollection<AccountRow> Accounts { get; } = [];
     public ObservableCollection<string> Logs { get; } = [];
@@ -189,12 +189,11 @@ public sealed partial class MainWindowViewModel : ObservableObject
     [RelayCommand(CanExecute = nameof(CanInstall))]
     private Task RefreshJavaAsync() => RunAsync(async ct =>
     {
-        var bound=SelectedInstance!.Manifest.JavaPolicy.BoundRuntimeId;
         var results=await _workflow.DiscoverJavaAsync(ct);
         JavaRuntimes.Clear(); JavaRuntimes.Add(new(null,"自动选择兼容 Java"));
         foreach(var runtime in results.Where(x=>x.Runtime is not null).Select(x=>x.Runtime!).DistinctBy(x=>x.RuntimeId))
             JavaRuntimes.Add(new(runtime.RuntimeId,$"Java {runtime.MajorVersion} / {runtime.Architecture} / {runtime.Vendor}"));
-        SelectBoundJava(bound);
+        SelectBoundJava(SelectedInstance?.Manifest.JavaPolicy.BoundRuntimeId);
         Status=$"发现 {results.Count(x=>x.Runtime is not null)} 个可用 Java；探测失败 {results.Count(x=>x.Runtime is null)} 个。";
     });
 

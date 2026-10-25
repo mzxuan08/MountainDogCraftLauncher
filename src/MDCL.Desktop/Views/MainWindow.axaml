@@ -1,367 +1,123 @@
-<Window xmlns="https://github.com/avaloniaui"
-        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-        xmlns:vm="using:MDCL.Desktop.ViewModels"
-        x:Class="MDCL.Desktop.Views.MainWindow"
-        x:DataType="vm:MainWindowViewModel"
-        Width="1320" Height="860" MinWidth="1100" MinHeight="720"
-        Background="#EEF2F6"
-        Title="{Binding Title}">
+<Window xmlns="https://github.com/avaloniaui" xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:vm="using:MDCL.Desktop.ViewModels" x:Class="MDCL.Desktop.Views.MainWindow"
+        x:DataType="vm:MainWindowViewModel" Width="1200" Height="800" MinWidth="1100" MinHeight="720"
+        Background="#EAF3FA" Foreground="#263D50" FontFamily="Microsoft YaHei UI,Segoe UI,PingFang SC"
+        Title="{Binding Title}" WindowStartupLocation="CenterScreen">
   <Window.Styles>
     <Style Selector="Button">
-      <Setter Property="Background" Value="#E9EEF3" />
-      <Setter Property="Foreground" Value="#1C2A36" />
-      <Setter Property="BorderThickness" Value="0" />
-      <Setter Property="CornerRadius" Value="9" />
-      <Setter Property="Padding" Value="14,9" />
-      <Setter Property="FontSize" Value="13" />
+      <Setter Property="Background" Value="White"/><Setter Property="Foreground" Value="#176DA6"/>
+      <Setter Property="BorderBrush" Value="#B9D3E5"/><Setter Property="BorderThickness" Value="1"/>
+      <Setter Property="CornerRadius" Value="4"/><Setter Property="Padding" Value="14,8"/>
+      <Setter Property="MinHeight" Value="36"/><Setter Property="FontSize" Value="13"/>
     </Style>
-    <Style Selector="Button:pointerover">
-      <Setter Property="Background" Value="#DEE6ED" />
+    <Style Selector="Button:pointerover"><Setter Property="Background" Value="#E6F4FF"/><Setter Property="BorderBrush" Value="#1479BF"/></Style>
+    <Style Selector="Button.accent"><Setter Property="Background" Value="#1479BF"/><Setter Property="Foreground" Value="White"/><Setter Property="BorderBrush" Value="#1479BF"/></Style>
+    <Style Selector="Button.accent:pointerover"><Setter Property="Background" Value="#1067A5"/></Style>
+    <Style Selector="Button.play"><Setter Property="Background" Value="#1479BF"/><Setter Property="Foreground" Value="White"/><Setter Property="FontSize" Value="20"/><Setter Property="FontWeight" Value="SemiBold"/></Style>
+    <Style Selector="Button.play:pointerover"><Setter Property="Background" Value="#1067A5"/></Style>
+    <Style Selector="Button:disabled"><Setter Property="Opacity" Value="0.45"/></Style>
+    <Style Selector="Button.link"><Setter Property="BorderThickness" Value="0"/><Setter Property="Background" Value="Transparent"/><Setter Property="Padding" Value="0,6"/><Setter Property="HorizontalAlignment" Value="Left"/></Style>
+    <Style Selector="TextBox"><Setter Property="CornerRadius" Value="4"/><Setter Property="Padding" Value="11,8"/><Setter Property="Background" Value="White"/><Setter Property="BorderBrush" Value="#B9CDDD"/><Setter Property="FontSize" Value="13"/></Style>
+    <Style Selector="ComboBox"><Setter Property="CornerRadius" Value="4"/><Setter Property="Padding" Value="10,7"/><Setter Property="Background" Value="White"/><Setter Property="FontSize" Value="13"/></Style>
+    <Style Selector="Border.card"><Setter Property="Background" Value="White"/><Setter Property="CornerRadius" Value="6"/><Setter Property="Padding" Value="22"/><Setter Property="BoxShadow" Value="0 2 8 0 #100F3654"/></Style>
+    <Style Selector="TextBlock.cardTitle"><Setter Property="FontSize" Value="17"/><Setter Property="FontWeight" Value="SemiBold"/><Setter Property="Foreground" Value="#176DA6"/></Style>
+    <Style Selector="TextBlock.muted"><Setter Property="FontSize" Value="12"/><Setter Property="Foreground" Value="#526B7C"/></Style>
+    <Style Selector="TextBlock.pageTitle"><Setter Property="FontSize" Value="26"/><Setter Property="FontWeight" Value="SemiBold"/><Setter Property="Foreground" Value="#205779"/></Style>
+    <Style Selector="ListBox"><Setter Property="BorderThickness" Value="0"/></Style>
+    <Style Selector="ListBoxItem"><Setter Property="Padding" Value="8"/><Setter Property="Margin" Value="0,2"/><Setter Property="CornerRadius" Value="4"/>
+      <Setter Property="Template"><ControlTemplate><Border Background="{TemplateBinding Background}" Padding="{TemplateBinding Padding}" CornerRadius="{TemplateBinding CornerRadius}"><ContentPresenter Content="{TemplateBinding Content}" ContentTemplate="{TemplateBinding ContentTemplate}"/></Border></ControlTemplate></Setter>
     </Style>
-    <Style Selector="Button.accent">
-      <Setter Property="Background" Value="#21A06B" />
-      <Setter Property="Foreground" Value="White" />
-      <Setter Property="FontWeight" Value="SemiBold" />
-    </Style>
-    <Style Selector="Button.accent:pointerover">
-      <Setter Property="Background" Value="#18895A" />
-      <Setter Property="Foreground" Value="White" />
-    </Style>
-    <Style Selector="Button.play">
-      <Setter Property="Background" Value="#25C281" />
-      <Setter Property="Foreground" Value="#062117" />
-      <Setter Property="FontWeight" Value="Bold" />
-      <Setter Property="FontSize" Value="16" />
-      <Setter Property="CornerRadius" Value="11" />
-    </Style>
-    <Style Selector="Button.play:pointerover">
-      <Setter Property="Background" Value="#3BD596" />
-    </Style>
-    <Style Selector="Button.ghost">
-      <Setter Property="Background" Value="#24FFFFFF" />
-      <Setter Property="Foreground" Value="White" />
-    </Style>
-    <Style Selector="Button.ghost:pointerover">
-      <Setter Property="Background" Value="#38FFFFFF" />
-    </Style>
-    <Style Selector="Button.danger">
-      <Setter Property="Background" Value="#3AFFFFFF" />
-      <Setter Property="Foreground" Value="#FFD7D7" />
-    </Style>
-    <Style Selector="Button.dark">
-      <Setter Property="Background" Value="#1E2935" />
-      <Setter Property="Foreground" Value="#E8EDF3" />
-    </Style>
-    <Style Selector="TextBox">
-      <Setter Property="CornerRadius" Value="9" />
-      <Setter Property="Padding" Value="11,9" />
-      <Setter Property="Background" Value="#F7FAFC" />
-      <Setter Property="BorderBrush" Value="#D9E2EA" />
-      <Setter Property="FontSize" Value="13" />
-    </Style>
-    <Style Selector="ComboBox">
-      <Setter Property="CornerRadius" Value="9" />
-      <Setter Property="Padding" Value="10,7" />
-      <Setter Property="Background" Value="#F7FAFC" />
-      <Setter Property="FontSize" Value="13" />
-    </Style>
-    <Style Selector="Border.card">
-      <Setter Property="Background" Value="White" />
-      <Setter Property="CornerRadius" Value="16" />
-      <Setter Property="Padding" Value="20" />
-      <Setter Property="BoxShadow" Value="0 4 16 0 #0D000000" />
-    </Style>
-    <Style Selector="TextBlock.cardTitle">
-      <Setter Property="FontSize" Value="17" />
-      <Setter Property="FontWeight" Value="SemiBold" />
-      <Setter Property="Foreground" Value="#18242F" />
-    </Style>
-    <Style Selector="TextBlock.muted">
-      <Setter Property="FontSize" Value="12" />
-      <Setter Property="Foreground" Value="#6D7E8E" />
-    </Style>
-    <Style Selector="TextBlock.label">
-      <Setter Property="FontSize" Value="11" />
-      <Setter Property="Foreground" Value="#718292" />
-    </Style>
-    <Style Selector="TextBlock.value">
-      <Setter Property="FontSize" Value="21" />
-      <Setter Property="FontWeight" Value="SemiBold" />
-      <Setter Property="Foreground" Value="#172531" />
-    </Style>
-    <Style Selector="TabItem">
-      <Setter Property="FontSize" Value="14" />
-      <Setter Property="Padding" Value="15,9" />
-      <Setter Property="Margin" Value="2,0" />
-      <Setter Property="Foreground" Value="#5B6C7B" />
-    </Style>
-    <Style Selector="TabItem:selected">
-      <Setter Property="Background" Value="#DDF3E8" />
-      <Setter Property="Foreground" Value="#0B6B47" />
-      <Setter Property="FontWeight" Value="SemiBold" />
-    </Style>
-    <Style Selector="ListBoxItem">
-      <Setter Property="Padding" Value="0" />
-      <Setter Property="Margin" Value="0,0,0,7" />
-      <Setter Property="Background" Value="#182430" />
-    </Style>
-    <Style Selector="ListBoxItem:pointerover">
-      <Setter Property="Background" Value="#1C2C39" />
-    </Style>
-    <Style Selector="ListBoxItem:selected">
-      <Setter Property="Background" Value="#1D5A43" />
+    <Style Selector="ListBoxItem:pointerover"><Setter Property="Background" Value="#ECF5FC"/></Style>
+    <Style Selector="ListBoxItem:selected"><Setter Property="Background" Value="#DFEEFA"/><Setter Property="Foreground" Value="#126FAE"/></Style>
+    <Style Selector="ListBox.nav ListBoxItem"><Setter Property="Foreground" Value="White"/><Setter Property="Padding" Value="17,16"/><Setter Property="Margin" Value="0"/><Setter Property="CornerRadius" Value="0"/><Setter Property="FontSize" Value="15"/></Style>
+    <Style Selector="ListBox.nav ListBoxItem:selected"><Setter Property="Background" Value="#27FFFFFF"/><Setter Property="FontWeight" Value="SemiBold"/></Style>
+    <Style Selector="ListBox.nav ListBoxItem:pointerover"><Setter Property="Background" Value="#20FFFFFF"/></Style>
+    <Style Selector="TabControl.pages">
+      <Setter Property="Template"><ControlTemplate><Grid RowDefinitions="0,*"><ItemsPresenter Name="PART_ItemsPresenter" ItemsPanel="{TemplateBinding ItemsPanel}" Height="0" Opacity="0" IsHitTestVisible="False"/><Panel Grid.Row="1" ClipToBounds="True"><ContentPresenter Name="PART_SelectedContentHost2" IsVisible="False"/><ContentPresenter Name="PART_SelectedContentHost"/></Panel></Grid></ControlTemplate></Setter>
     </Style>
   </Window.Styles>
-
-  <Grid RowDefinitions="Auto,*">
-    <Border Padding="22,15">
-      <Border.Background>
-        <LinearGradientBrush StartPoint="0%,0%" EndPoint="100%,0%">
-          <GradientStop Color="#0B121B" Offset="0" />
-          <GradientStop Color="#13231F" Offset="1" />
-        </LinearGradientBrush>
-      </Border.Background>
-      <Grid ColumnDefinitions="Auto,*,Auto">
-        <StackPanel Orientation="Horizontal" Spacing="12">
-          <Border Width="38" Height="38" CornerRadius="10" Background="#37D38B">
-            <TextBlock Text="M" Foreground="#082218" FontWeight="Bold" FontSize="22"
-                       HorizontalAlignment="Center" VerticalAlignment="Center" />
-          </Border>
-          <StackPanel VerticalAlignment="Center">
-            <TextBlock Text="{Binding Title}" Foreground="White" FontSize="21" FontWeight="SemiBold" />
-            <TextBlock Text="{Binding Subtitle}" Foreground="#93A7B7" FontSize="11" />
-          </StackPanel>
+  <Grid RowDefinitions="56,*,Auto">
+    <Border>
+      <Border.Background><LinearGradientBrush StartPoint="0%,0%" EndPoint="100%,0%"><GradientStop Color="#168BD2" Offset="0"/><GradientStop Color="#146AB2" Offset="1"/></LinearGradientBrush></Border.Background>
+      <Grid ColumnDefinitions="258,*,Auto">
+        <StackPanel Orientation="Horizontal" Spacing="11" Margin="22,0" VerticalAlignment="Center">
+          <Path Width="27" Height="25" Stretch="Uniform" Stroke="White" StrokeThickness="2.2" Data="M 1,23 L 10,3 L 16,15 L 21,7 L 29,23 Z M 6,13 L 11,16 L 14,12"/>
+          <TextBlock Text="MDCL" Foreground="White" FontSize="23" FontWeight="SemiBold" VerticalAlignment="Center"/>
         </StackPanel>
-        <Border Grid.Column="1" Background="#1CFFFFFF" CornerRadius="16" Padding="14,8"
-                Margin="26,0,16,0" VerticalAlignment="Center" HorizontalAlignment="Left">
-          <StackPanel Orientation="Horizontal" Spacing="8">
-            <Border Width="7" Height="7" CornerRadius="4" Background="#46E39C" VerticalAlignment="Center" />
-            <TextBlock Text="{Binding Status}" Foreground="#E4EEF5" FontSize="12"
-                       MaxWidth="560" TextTrimming="CharacterEllipsis" />
-          </StackPanel>
-        </Border>
-        <Button Grid.Column="2" Classes="dark" Content="刷新" Command="{Binding RefreshCommand}"
-                VerticalAlignment="Center" />
+        <ListBox Classes="nav" Grid.Column="1" ItemsSource="{Binding Navigation}" SelectedIndex="{Binding SelectedTabIndex}" Background="Transparent" Padding="0" VerticalAlignment="Stretch">
+          <ListBox.ItemsPanel><ItemsPanelTemplate><StackPanel Orientation="Horizontal"/></ItemsPanelTemplate></ListBox.ItemsPanel>
+        </ListBox>
+        <Button Grid.Column="2" Content="刷新" Command="{Binding RefreshCommand}" Margin="8,10,18,10" Background="#20FFFFFF" BorderBrush="#55FFFFFF" Foreground="White"/>
       </Grid>
     </Border>
-
-    <Grid Grid.Row="1" ColumnDefinitions="318,*" Margin="16">
-      <Border Background="#0F1923" CornerRadius="16" Padding="14">
-        <Grid RowDefinitions="Auto,*,Auto">
-          <Grid ColumnDefinitions="*,Auto" Margin="4,2,4,12">
-            <StackPanel Spacing="2">
-              <TextBlock Text="实例" Foreground="#F4F8FB" FontSize="18" FontWeight="SemiBold" />
-              <TextBlock Text="选择要启动的版本" Foreground="#7E91A3" FontSize="11" />
-            </StackPanel>
-            <Border Grid.Column="1" Background="#1D2A37" CornerRadius="12" Padding="9,3" VerticalAlignment="Center">
-              <TextBlock Text="{Binding Instances.Count}" Foreground="#AFC0CF" FontSize="12" />
-            </Border>
-          </Grid>
-          <ListBox Grid.Row="1" ItemsSource="{Binding Instances}" SelectedItem="{Binding SelectedInstance}"
-                   Background="Transparent" BorderThickness="0" Padding="0">
-            <ListBox.ItemTemplate>
-              <DataTemplate x:DataType="vm:InstanceRow">
-                <Border Background="Transparent" CornerRadius="11" Padding="10">
-                  <Grid ColumnDefinitions="38,*,Auto" ColumnSpacing="9">
-                    <Border Width="38" Height="38" CornerRadius="9" Background="#173D31">
-                      <TextBlock Text="M" Foreground="#45DE9C" FontWeight="Bold" FontSize="20"
-                                 HorizontalAlignment="Center" VerticalAlignment="Center" />
-                    </Border>
-                    <StackPanel Grid.Column="1" Spacing="2" VerticalAlignment="Center">
-                      <TextBlock Text="{Binding Manifest.DisplayName}" Foreground="#F2F7FA"
-                                 FontSize="14" FontWeight="SemiBold" TextTrimming="CharacterEllipsis" />
-                      <TextBlock Text="{Binding Details}" Foreground="#8EA1B1" FontSize="11"
-                                 TextTrimming="CharacterEllipsis" />
-                    </StackPanel>
-                    <TextBlock Grid.Column="2" Text="›" Foreground="#5E7385" FontSize="20" VerticalAlignment="Center" />
-                  </Grid>
-                </Border>
-              </DataTemplate>
-            </ListBox.ItemTemplate>
+    <Grid Grid.Row="1" ColumnDefinitions="258,*">
+      <Border Background="White" BorderBrush="#D8E5EF" BorderThickness="0,0,1,0" Padding="20,22,20,16">
+        <Grid RowDefinitions="Auto,Auto,*,Auto" RowSpacing="17">
+          <StackPanel Spacing="10">
+            <TextBlock Text="游戏账号" Classes="cardTitle"/>
+            <ComboBox ItemsSource="{Binding Accounts}" SelectedItem="{Binding SelectedAccount}" HorizontalAlignment="Stretch" PlaceholderText="请选择账号">
+              <ComboBox.ItemTemplate><DataTemplate x:DataType="vm:AccountRow"><TextBlock Text="{Binding Display}" TextTrimming="CharacterEllipsis"/></DataTemplate></ComboBox.ItemTemplate>
+            </ComboBox>
+            <Button Classes="link" Content="添加账号 / 管理账号" Command="{Binding OpenAccountsCommand}"/>
+          </StackPanel>
+          <Grid Grid.Row="1" ColumnDefinitions="*,Auto"><TextBlock Text="版本选择" Classes="cardTitle"/><TextBlock Grid.Column="1" Text="{Binding Instances.Count}" Classes="muted" VerticalAlignment="Center"/></Grid>
+          <ListBox Grid.Row="2" ItemsSource="{Binding Instances}" SelectedItem="{Binding SelectedInstance}" Background="Transparent" Padding="0">
+            <ListBox.ItemTemplate><DataTemplate x:DataType="vm:InstanceRow">
+              <StackPanel Spacing="4" Margin="1,4"><TextBlock Text="{Binding Manifest.DisplayName}" FontSize="14" FontWeight="SemiBold" TextTrimming="CharacterEllipsis"/><TextBlock Text="{Binding Details}" FontSize="11" Foreground="#526B7C" TextWrapping="Wrap"/></StackPanel>
+            </DataTemplate></ListBox.ItemTemplate>
           </ListBox>
-          <Border Grid.Row="2" Background="#0B131C" BorderBrush="#22303D" BorderThickness="1"
-                  CornerRadius="13" Padding="12" Margin="0,14,0,0">
-            <StackPanel Spacing="8">
-              <Grid ColumnDefinitions="*,Auto">
-                <TextBlock Text="启动器" Foreground="#91A5B7" FontSize="11" />
-                <TextBlock Grid.Column="1" Text="JAVA EDITION" Foreground="#4C6478" FontSize="9" />
-              </Grid>
-              <Button Classes="play" Content="▶   启动游戏" Height="50"
-                      HorizontalAlignment="Stretch" HorizontalContentAlignment="Center"
-                      Command="{Binding LaunchCommand}" />
-              <Grid ColumnDefinitions="*,*" ColumnSpacing="8">
-                <Button Grid.Column="0" Classes="accent" Content="安装 / 修复"
-                        Command="{Binding InstallCommand}" />
-                <Button Grid.Column="1" Classes="danger" Content="停止"
-                        Command="{Binding StopCommand}" />
-              </Grid>
-              <TextBlock Text="{Binding ProgressText}" Foreground="#7E93A6" FontSize="10" TextWrapping="Wrap" />
-              <Button Content="取消当前任务" Command="{Binding CancelCommand}" />
-            </StackPanel>
-          </Border>
+          <StackPanel Grid.Row="3" Spacing="9">
+            <TextBlock Text="{Binding SelectedInstance.Manifest.DisplayName, FallbackValue=请先创建或选择实例}" Classes="muted" TextTrimming="CharacterEllipsis"/>
+            <Button Classes="play" Content="启动游戏" Height="64" HorizontalAlignment="Stretch" HorizontalContentAlignment="Center" Command="{Binding LaunchCommand}"/>
+            <Grid ColumnDefinitions="*,*" ColumnSpacing="8"><Button Content="安装 / 修复" Command="{Binding InstallCommand}"/><Button Grid.Column="1" Content="停止游戏" Command="{Binding StopCommand}"/></Grid>
+            <ProgressBar IsVisible="{Binding IsBusy}" IsIndeterminate="True" Height="3" Foreground="#1479BF"/>
+            <TextBlock Text="{Binding ProgressText}" Classes="muted" FontSize="11" TextWrapping="Wrap" MaxHeight="48"/>
+            <Button Content="取消当前任务" Command="{Binding CancelCommand}" HorizontalAlignment="Stretch" HorizontalContentAlignment="Center"/>
+          </StackPanel>
         </Grid>
       </Border>
-
-      <TabControl Grid.Column="1" Margin="16,0,0,0" Padding="0" Background="Transparent"
-                  SelectedIndex="{Binding SelectedTabIndex}">
-        <TabItem Header="主页">
+      <TabControl Classes="pages" Grid.Column="1" Margin="24" SelectedIndex="{Binding SelectedTabIndex}" Background="Transparent">
+        <TabItem Header="启动">
           <ScrollViewer>
-            <StackPanel Spacing="14" Margin="0,4,4,4">
-              <Border CornerRadius="18" MinHeight="226" ClipToBounds="True">
-                <Border.Background>
-                  <LinearGradientBrush StartPoint="0%,0%" EndPoint="100%,100%">
-                    <GradientStop Color="#12342D" Offset="0" />
-                    <GradientStop Color="#17634B" Offset="0.55" />
-                    <GradientStop Color="#1F8A63" Offset="1" />
-                  </LinearGradientBrush>
-                </Border.Background>
-                <Grid ColumnDefinitions="*,250" ClipToBounds="True">
-                  <StackPanel Margin="28,24" Spacing="12" VerticalAlignment="Center">
-                    <TextBlock Text="MINECRAFT JAVA EDITION" Foreground="#8BE7BE" FontSize="11" FontWeight="SemiBold" />
-                    <TextBlock Text="{Binding SelectedInstance.Manifest.DisplayName, FallbackValue=创建你的第一个实例}"
-                               Foreground="White" FontSize="32" FontWeight="Bold" TextTrimming="CharacterEllipsis" />
-                    <TextBlock Text="轻量、可靠的 Minecraft 启动器。原版、Fabric、Forge 与 NeoForge 统一管理。"
-                               Foreground="#C7EFDD" FontSize="13" TextWrapping="Wrap" MaxWidth="560"
-                               HorizontalAlignment="Left" TextAlignment="Left" />
-                    <StackPanel Orientation="Horizontal" Spacing="8">
-                      <Border Background="#24FFFFFF" CornerRadius="7" Padding="9,4">
-                        <TextBlock Text="{Binding SelectedInstance.Manifest.BaseVersion, FallbackValue=—}"
-                                   Foreground="White" FontSize="12" />
-                      </Border>
-                      <Border Background="#24FFFFFF" CornerRadius="7" Padding="9,4">
-                        <TextBlock Text="{Binding SelectedInstance.LoaderDisplay, FallbackValue=—}"
-                                   Foreground="White" FontSize="12" />
-                      </Border>
-                      <Border Background="#24FFFFFF" CornerRadius="7" Padding="9,4">
-                        <TextBlock Text="{Binding SelectedInstance.InstallState, FallbackValue=—}"
-                                   Foreground="White" FontSize="12" />
-                      </Border>
-                    </StackPanel>
-                    <StackPanel Orientation="Horizontal" Spacing="10" Margin="0,4,0,0">
-                      <Button Classes="play" Content="▶   开始游戏" MinWidth="148" Height="44"
-                              Command="{Binding LaunchCommand}" />
-                      <Button Classes="ghost" Content="安装 / 修复" MinWidth="110" Height="44"
-                              Command="{Binding InstallCommand}" />
-                    </StackPanel>
-                  </StackPanel>
-                  <Grid Grid.Column="1">
-                    <TextBlock Text="M" Foreground="#16FFFFFF" FontSize="210" FontWeight="Bold"
-                               HorizontalAlignment="Center" VerticalAlignment="Center" Margin="0,-18,0,0" />
-                    <Border Width="150" Height="150" CornerRadius="34" Background="#12FFFFFF"
-                            VerticalAlignment="Center" HorizontalAlignment="Center" />
+            <StackPanel Spacing="18" Margin="0,0,4,4">
+              <StackPanel Spacing="7" Margin="2,2,0,5"><TextBlock Text="开始你的下一段旅程" Classes="pageTitle"/><TextBlock Text="选择版本，准备好账号，然后出发。" Classes="muted"/></StackPanel>
+              <Border Classes="card">
+                <StackPanel Spacing="13">
+                  <TextBlock Text="当前游戏" Classes="cardTitle"/>
+                  <TextBlock Text="{Binding SelectedInstance.Manifest.DisplayName, FallbackValue=还没有选择实例}" FontSize="22" FontWeight="SemiBold" TextWrapping="Wrap"/>
+                  <TextBlock Text="{Binding SelectedInstance.Details, FallbackValue=在下方创建原版实例，再从左侧选择。}" Classes="muted" TextWrapping="Wrap"/>
+                  <Border Height="1" Background="#E5EEF5" Margin="0,3"/>
+                  <Grid ColumnDefinitions="*,*" RowDefinitions="Auto,Auto" RowSpacing="8">
+                    <TextBlock Text="运行状态" Classes="muted"/><TextBlock Grid.Column="1" Text="{Binding RunState}"/>
+                    <TextBlock Grid.Row="1" Text="账号" Classes="muted"/><TextBlock Grid.Row="1" Grid.Column="1" Text="{Binding SelectedAccount.Display, FallbackValue=请在左侧添加账号}" TextWrapping="Wrap"/>
                   </Grid>
-                </Grid>
+                </StackPanel>
               </Border>
-
-              <Grid ColumnDefinitions="*,*,*" ColumnSpacing="12">
-                <Border Classes="card" Padding="16">
-                  <StackPanel Spacing="3">
-                    <TextBlock Text="游戏版本" Classes="label" />
-                    <TextBlock Text="{Binding SelectedInstance.Manifest.BaseVersion, FallbackValue=—}" Classes="value" />
-                  </StackPanel>
-                </Border>
-                <Border Grid.Column="1" Classes="card" Padding="16">
-                  <StackPanel Spacing="3">
-                    <TextBlock Text="加载器" Classes="label" />
-                    <TextBlock Text="{Binding SelectedInstance.LoaderDisplay, FallbackValue=—}" Classes="value"
-                               FontSize="18" />
-                  </StackPanel>
-                </Border>
-                <Border Grid.Column="2" Classes="card" Padding="16">
-                  <StackPanel Spacing="3">
-                    <TextBlock Text="运行状态" Classes="label" />
-                    <TextBlock Text="{Binding RunState}" Classes="value" />
-                  </StackPanel>
-                </Border>
-              </Grid>
-
-              <Grid ColumnDefinitions="1.45*,*" ColumnSpacing="12">
-                <Border Classes="card">
-                  <StackPanel Spacing="12">
-                    <StackPanel Orientation="Horizontal" Spacing="8">
-                      <TextBlock Text="新建实例" Classes="cardTitle" />
-                      <Border Background="#E9F7F0" CornerRadius="6" Padding="7,2" VerticalAlignment="Center">
-                        <TextBlock Text="原版" Foreground="#168757" FontSize="10" />
-                      </Border>
-                    </StackPanel>
-                    <Grid ColumnDefinitions="*,*,Auto" ColumnSpacing="8">
-                      <TextBox Grid.Column="0" Text="{Binding NewInstanceName}" PlaceholderText="实例名称" />
-                      <TextBox Grid.Column="1" Text="{Binding NewVersion}" PlaceholderText="版本 ID，例如 1.20.1" />
-                      <Button Grid.Column="2" Classes="accent" Content="创建" Command="{Binding CreateCommand}" />
-                    </Grid>
-                    <TextBlock Text="从 Mojang 官方元数据解析版本、Java 要求与资源，不复制来源不明的客户端。"
-                               Classes="muted" TextWrapping="Wrap" />
-                  </StackPanel>
-                </Border>
-                <Border Grid.Column="1" Classes="card">
-                  <StackPanel Spacing="8">
-                    <TextBlock Text="当前任务" Classes="cardTitle" />
-                    <Border Background="#FFF8EB" CornerRadius="9" Padding="10">
-                      <TextBlock Text="{Binding Status}" Foreground="#8A5A12" FontSize="12" TextWrapping="Wrap" />
-                    </Border>
-                    <TextBlock Text="加载器、模组、整合包与账号在顶部标签页中管理。" Classes="muted" TextWrapping="Wrap" />
-                  </StackPanel>
-                </Border>
-              </Grid>
-
-              <Grid ColumnDefinitions="*,*,*,*" ColumnSpacing="12">
-                <Border Classes="card" Padding="16">
-                  <StackPanel Spacing="6">
-                    <Border Width="32" Height="32" CornerRadius="9" Background="#E9F7F0" HorizontalAlignment="Left">
-                      <TextBlock Text="L" Foreground="#168757" FontWeight="Bold" FontSize="16"
-                                 HorizontalAlignment="Center" VerticalAlignment="Center" />
-                    </Border>
-                    <TextBlock Text="加载器" FontWeight="SemiBold" Foreground="#18242F" />
-                    <TextBlock Text="Fabric / Forge / NeoForge" Classes="muted" TextWrapping="Wrap" />
-                    <Button Content="管理加载器" Command="{Binding OpenLoadersCommand}" />
-                  </StackPanel>
-                </Border>
-                <Border Grid.Column="1" Classes="card" Padding="16">
-                  <StackPanel Spacing="6">
-                    <Border Width="32" Height="32" CornerRadius="9" Background="#EEF2FF" HorizontalAlignment="Left">
-                      <TextBlock Text="M" Foreground="#4A58B8" FontWeight="Bold" FontSize="16"
-                                 HorizontalAlignment="Center" VerticalAlignment="Center" />
-                    </Border>
-                    <TextBlock Text="模组" FontWeight="SemiBold" Foreground="#18242F" />
-                    <TextBlock Text="本地启停 / Modrinth" Classes="muted" TextWrapping="Wrap" />
-                    <Button Content="管理模组" Command="{Binding OpenModsCommand}" />
-                  </StackPanel>
-                </Border>
-                <Border Grid.Column="2" Classes="card" Padding="16">
-                  <StackPanel Spacing="6">
-                    <Border Width="32" Height="32" CornerRadius="9" Background="#FFF0E5" HorizontalAlignment="Left">
-                      <TextBlock Text="P" Foreground="#B85E17" FontWeight="Bold" FontSize="16"
-                                 HorizontalAlignment="Center" VerticalAlignment="Center" />
-                    </Border>
-                    <TextBlock Text="整合包" FontWeight="SemiBold" Foreground="#18242F" />
-                    <TextBlock Text="导入 .mrpack 实例" Classes="muted" TextWrapping="Wrap" />
-                    <Button Content="导入整合包" Command="{Binding OpenPacksCommand}" />
-                  </StackPanel>
-                </Border>
-                <Border Grid.Column="3" Classes="card" Padding="16">
-                  <StackPanel Spacing="6">
-                    <Border Width="32" Height="32" CornerRadius="9" Background="#EAF4FF" HorizontalAlignment="Left">
-                      <TextBlock Text="A" Foreground="#2776A8" FontWeight="Bold" FontSize="16"
-                                 HorizontalAlignment="Center" VerticalAlignment="Center" />
-                    </Border>
-                    <TextBlock Text="账号" FontWeight="SemiBold" Foreground="#18242F" />
-                    <TextBlock Text="本地身份 / 微软登录" Classes="muted" TextWrapping="Wrap" />
-                    <Button Content="管理账号" Command="{Binding OpenAccountsCommand}" />
-                  </StackPanel>
-                </Border>
-              </Grid>
+              <Border Classes="card">
+                <StackPanel Spacing="13">
+                  <TextBlock Text="添加游戏版本" Classes="cardTitle"/>
+                  <Grid ColumnDefinitions="*,*" ColumnSpacing="12"><StackPanel Spacing="6"><TextBlock Text="实例名称" Classes="muted"/><TextBox Text="{Binding NewInstanceName}" PlaceholderText="例如：我的原版"/></StackPanel><StackPanel Grid.Column="1" Spacing="6"><TextBlock Text="Minecraft 版本 ID" Classes="muted"/><TextBox Text="{Binding NewVersion}" PlaceholderText="例如：1.20.1"/></StackPanel></Grid>
+                  <Grid ColumnDefinitions="*,Auto" ColumnSpacing="15"><TextBlock Text="创建后点击左侧「安装 / 修复」，下载完成后即可启动。" Classes="muted" TextWrapping="Wrap" VerticalAlignment="Center"/><Button Grid.Column="1" Classes="accent" Content="创建实例" Command="{Binding CreateCommand}"/></Grid>
+                </StackPanel>
+              </Border>
+              <Border Classes="card">
+                <StackPanel Spacing="12"><TextBlock Text="扩展你的游戏" Classes="cardTitle"/>
+                  <Grid ColumnDefinitions="*,Auto"><StackPanel Spacing="4"><TextBlock Text="安装加载器" FontWeight="SemiBold"/><TextBlock Text="为当前实例安装 Fabric、Forge 或 NeoForge。" Classes="muted" TextWrapping="Wrap"/></StackPanel><Button Grid.Column="1" Content="管理加载器" Command="{Binding OpenLoadersCommand}"/></Grid>
+                  <Border Height="1" Background="#E5EEF5"/>
+                  <Grid ColumnDefinitions="*,Auto"><StackPanel Spacing="4"><TextBlock Text="模组与整合包" FontWeight="SemiBold"/><TextBlock Text="管理本地模组、搜索 Modrinth，或导入 .mrpack。" Classes="muted" TextWrapping="Wrap"/></StackPanel><StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="8"><Button Content="模组" Command="{Binding OpenModsCommand}"/><Button Content="整合包" Command="{Binding OpenPacksCommand}"/></StackPanel></Grid>
+                </StackPanel>
+              </Border>
             </StackPanel>
           </ScrollViewer>
         </TabItem>
-
         <TabItem Header="加载器">
           <ScrollViewer>
-            <StackPanel Spacing="14" Margin="0,4,4,4">
+            <StackPanel Spacing="14" Margin="0,0,4,4">
               <Border Classes="card">
                 <StackPanel Spacing="12">
                   <StackPanel Orientation="Horizontal" Spacing="10">
-                    <Border Width="34" Height="34" CornerRadius="9" Background="#E9F7F0">
-                      <TextBlock Text="F" Foreground="#168757" FontWeight="Bold" FontSize="17"
+                    <Border Width="34" Height="34" CornerRadius="9" Background="#EAF5FC">
+                      <TextBlock Text="F" Foreground="#1479BF" FontWeight="Bold" FontSize="17"
                                  HorizontalAlignment="Center" VerticalAlignment="Center" />
                     </Border>
                     <StackPanel VerticalAlignment="Center">
@@ -400,13 +156,13 @@
         </TabItem>
 
         <TabItem Header="模组">
-          <Grid ColumnDefinitions="*,*" ColumnSpacing="14" Margin="0,4,4,4">
+          <Grid ColumnDefinitions="*,*" ColumnSpacing="14" Margin="0,0,4,4">
             <Border Classes="card">
               <Grid RowDefinitions="Auto,Auto,*,Auto" RowSpacing="10">
                 <TextBlock Text="本地模组" Classes="cardTitle" />
                 <TextBlock Grid.Row="1" Text="仅操作当前实例的 mods 目录；游戏运行中禁止修改。" Classes="muted" TextWrapping="Wrap" />
                 <ListBox Grid.Row="2" ItemsSource="{Binding LocalMods}" SelectedItem="{Binding SelectedLocalMod}"
-                         Background="#F7FAFC" CornerRadius="10" Padding="6">
+                         Background="#F6F9FC" CornerRadius="5" Padding="6">
                   <ListBox.ItemTemplate>
                     <DataTemplate x:DataType="vm:LocalModRow">
                       <TextBlock Text="{Binding Display}" TextWrapping="Wrap" FontSize="12" Margin="6,3" />
@@ -429,7 +185,7 @@
                   <Button Grid.Column="1" Classes="accent" Content="搜索" Command="{Binding SearchModrinthCommand}" />
                 </Grid>
                 <ListBox Grid.Row="3" ItemsSource="{Binding ModrinthProjects}" SelectedItem="{Binding SelectedModrinthProject}"
-                         Background="#F7FAFC" CornerRadius="10" Padding="6">
+                         Background="#F6F9FC" CornerRadius="5" Padding="6">
                   <ListBox.ItemTemplate>
                     <DataTemplate x:DataType="vm:ModrinthProjectRow">
                       <TextBlock Text="{Binding Display}" TextWrapping="Wrap" FontSize="12" Margin="6,3" />
@@ -445,7 +201,7 @@
 
         <TabItem Header="整合包">
           <ScrollViewer>
-            <StackPanel Spacing="14" Margin="0,4,4,4">
+            <StackPanel Spacing="14" Margin="0,0,4,4">
               <Border Classes="card">
                 <StackPanel Spacing="12">
                   <TextBlock Text="导入 .mrpack" Classes="cardTitle" />
@@ -471,7 +227,7 @@
 
         <TabItem Header="账号">
           <ScrollViewer>
-            <StackPanel Spacing="14" Margin="0,4,4,4">
+            <StackPanel Spacing="14" Margin="0,0,4,4">
               <Border Classes="card">
                 <StackPanel Spacing="12">
                   <TextBlock Text="当前账号" Classes="cardTitle" />
@@ -497,7 +253,7 @@
         </TabItem>
 
         <TabItem Header="日志">
-          <Grid RowDefinitions="Auto,*" Margin="0,4,4,4" RowSpacing="10">
+          <Grid RowDefinitions="Auto,*" Margin="0,0,4,4" RowSpacing="10">
             <Border Classes="card" Padding="16">
               <StackPanel Spacing="4">
                 <TextBlock Text="运行状态" Classes="cardTitle" />
@@ -509,12 +265,12 @@
                 <TextBox Text="{Binding DiagnosticPreview}" IsReadOnly="True" AcceptsReturn="True" MaxHeight="160" TextWrapping="Wrap" />
               </StackPanel>
             </Border>
-            <Border Grid.Row="1" Background="#0C131A" CornerRadius="14" Padding="12">
+            <Border Grid.Row="1" Background="#21384C" CornerRadius="6" Padding="12">
               <ListBox ItemsSource="{Binding Logs}" Background="Transparent" BorderThickness="0"
                        FontFamily="Cascadia Mono,Consolas,Menlo" FontSize="12">
                 <ListBox.ItemTemplate>
                   <DataTemplate>
-                    <TextBlock Text="{Binding}" Foreground="#C8D6E5" TextWrapping="Wrap" Margin="2" />
+                    <TextBlock Text="{Binding}" Foreground="#E1ECF4" TextWrapping="Wrap" Margin="2" />
                   </DataTemplate>
                 </ListBox.ItemTemplate>
               </ListBox>
@@ -523,7 +279,7 @@
         </TabItem>
         <TabItem Header="设置">
           <ScrollViewer>
-            <StackPanel Spacing="14" Margin="0,4,4,4">
+            <StackPanel Spacing="14" Margin="0,0,4,4">
               <Border Classes="card">
                 <StackPanel Spacing="10">
                   <TextBlock Text="当前实例设置" Classes="cardTitle" />
@@ -561,5 +317,6 @@
         </TabItem>
       </TabControl>
     </Grid>
+    <Border Grid.Row="2" Background="#DFEDF7" Padding="18,7"><Grid ColumnDefinitions="*,Auto"><TextBlock Text="{Binding Status}" Foreground="#365F7B" FontSize="12" TextTrimming="CharacterEllipsis"/><TextBlock Grid.Column="1" Text="MDCL · Java Edition" Foreground="#526B7C" FontSize="11" Margin="20,0,0,0"/></Grid></Border>
   </Grid>
 </Window>
