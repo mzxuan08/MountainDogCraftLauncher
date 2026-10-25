@@ -135,6 +135,24 @@ public sealed class LauncherWorkflow
         return new InstallOutcome(await _repository.LoadAsync(instanceId, ct), resolved);
     }
 
+    public async Task<InstallOutcome> InstallFabricAsync(
+        InstanceId instanceId, string? loaderVersion, IProgress<OperationEvent>? progress, CancellationToken ct)
+    {
+        var manifest = await _repository.LoadAsync(instanceId, ct);
+        await using var lease = await _leases.AcquireAsync(instanceId, "install-fabric", ct);
+        var selection = new VersionSelection(manifest.BaseVersion, LoaderKind.Fabric, string.IsNullOrWhiteSpace(loaderVersion) ? null : loaderVersion.Trim());
+        var resolved = await _resolver.ResolveAsync(selection, Target, ct);
+        var plan = await _planner.CreateAsync(new InstallRequest(instanceId, manifest.BaseVersion, new LoaderDescriptor(LoaderKind.Fabric, resolved.LoaderVersion), Target), ct);
+        var result = await _coordinator.RunAsync(plan, _paths.SharedRoot, progress, ct);
+        if (result.State != OperationState.Completed)
+            throw new MdclException(result.Error ?? MdclError.Of("FABRIC_INSTALL_FAILED", "Fabric", "Fabric 安装未完成。", true));
+        var instanceDirectory = Path.Combine(_paths.InstancesRoot, instanceId.ToString());
+        await _resolvedStore.SaveAsync(instanceDirectory, resolved, ct);
+        await _repository.SaveAsync(manifest with { Loader = new LoaderDescriptor(LoaderKind.Fabric, resolved.LoaderVersion) }, manifest.Revision, ct);
+        await _index.RebuildAsync(ct);
+        return new InstallOutcome(await _repository.LoadAsync(instanceId, ct), resolved);
+    }
+
     public async Task<JavaRuntime> EnsureJavaAsync(InstanceManifest manifest, ResolvedVersion resolved, CancellationToken ct)
     {
         var results = await _javaDiscovery.DiscoverAsync(ct);

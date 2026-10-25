@@ -33,6 +33,7 @@ public sealed partial class MainWindowViewModel : ObservableObject
     [ObservableProperty] private string _newInstanceName = "我的原版";
     [ObservableProperty] private string _newVersion = "1.20.1";
     [ObservableProperty] private string _localDisplayName = "本地玩家";
+    [ObservableProperty] private string _fabricVersion = "";
     [ObservableProperty] private bool _isBusy;
     [ObservableProperty] private bool _isGameRunning;
     [ObservableProperty] private string _progressText = "";
@@ -115,6 +116,29 @@ public sealed partial class MainWindowViewModel : ObservableObject
     }
 
     private bool CanInstall() => !IsBusy && SelectedInstance is not null;
+
+    [RelayCommand(CanExecute = nameof(CanInstall))]
+    private async Task InstallFabricAsync()
+    {
+        var instance = SelectedInstance;
+        if (instance is null) return;
+        await RunAsync(async () =>
+        {
+            var progress = new Progress<OperationEvent>(evt =>
+            {
+                if (evt.MessageCode is "download" or "cache-hit" && evt.Sequence % 10 != 0) return;
+                ProgressText = evt.TotalBytes is > 0
+                    ? $"{evt.StepId}: {FormatBytes(evt.DoneBytes ?? 0)} / {FormatBytes(evt.TotalBytes.Value)}"
+                    : $"{evt.StepId}: {evt.MessageCode}";
+            });
+            Status = "正在解析并安装 Fabric…";
+            var outcome = await _workflow.InstallFabricAsync(instance.Id, FabricVersion, progress, CancellationToken.None);
+            await RefreshCoreAsync();
+            SelectedInstance = Instances.FirstOrDefault(x => x.Id == instance.Id);
+            ProgressText = "";
+            Status = $"Fabric {outcome.Manifest.Loader.Version} 已安装到“{instance.Manifest.DisplayName}”。";
+        });
+    }
 
     [RelayCommand(CanExecute = nameof(CanLaunch))]
     private async Task LaunchAsync()
@@ -225,6 +249,7 @@ public sealed partial class MainWindowViewModel : ObservableObject
     {
         CreateCommand.NotifyCanExecuteChanged();
         InstallCommand.NotifyCanExecuteChanged();
+        InstallFabricCommand.NotifyCanExecuteChanged();
         LaunchCommand.NotifyCanExecuteChanged();
         StopCommand.NotifyCanExecuteChanged();
         AddLocalCommand.NotifyCanExecuteChanged();

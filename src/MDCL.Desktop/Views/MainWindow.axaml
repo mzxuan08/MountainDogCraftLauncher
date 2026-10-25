@@ -39,6 +39,8 @@
           </ListBox>
           <StackPanel Grid.Row="2" Spacing="8" Margin="0,12,0,0">
             <Button Content="安装 / 修复当前实例" Command="{Binding InstallCommand}" HorizontalAlignment="Stretch" />
+            <TextBox Text="{Binding FabricVersion}" PlaceholderText="Fabric loader 版本（空=最新稳定）" />
+            <Button Content="安装 Fabric" Command="{Binding InstallFabricCommand}" HorizontalAlignment="Stretch" />
             <Grid ColumnDefinitions="*,*">
               <Button Grid.Column="0" Content="启动" Command="{Binding LaunchCommand}" Margin="0,0,4,0" />
               <Button Grid.Column="1" Content="停止" Command="{Binding StopCommand}" Margin="4,0,0,0" />

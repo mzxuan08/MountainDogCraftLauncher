@@ -31,7 +31,8 @@ public sealed record LibraryDocument(
     IReadOnlyList<VersionRule> Rules,
     LibraryDownloads? Downloads,
     LibraryExtract? Extract,
-    string? BaseUrl);
+    string? BaseUrl,
+    string? HashSource = null);
 
 public sealed record JavaVersionInfo(string? Component, int MajorVersion);
 
@@ -186,7 +187,8 @@ public static class VersionDocumentParser
             item.TryGetProperty("rules", out var rules) ? ParseRules(rules) : [],
             downloads,
             extract,
-            OptionalString(item, "url"));
+            OptionalString(item, "url"),
+            "mojang-library-json");
     }
 
     private static LibraryDownloads ParseLibraryDownloads(JsonElement node)

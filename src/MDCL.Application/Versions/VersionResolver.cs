@@ -9,28 +9,40 @@ namespace MDCL.Application.Versions;
 public sealed class VersionResolver : IVersionResolver
 {
     private readonly IVersionMetadataSource _source;
+    private readonly IReadOnlyDictionary<LoaderKind, IComponentVersionProvider> _components;
     private readonly VersionInheritanceResolver _inheritance = new();
     private readonly ResolvedVersionBuilder _builder = new();
 
-    public VersionResolver(IVersionMetadataSource source) => _source = source;
+    public VersionResolver(IVersionMetadataSource source, IEnumerable<IComponentVersionProvider>? components = null)
+    {
+        _source = source;
+        _components = (components ?? []).ToDictionary(x => x.Kind);
+    }
 
     public async Task<ResolvedVersion> ResolveAsync(VersionSelection selection, TargetPlatform target, CancellationToken ct)
     {
-        if (selection.LoaderKind != LoaderKind.Vanilla)
-            throw new MdclException(MdclError.Of("COMPONENT_NOT_AVAILABLE", "VersionResolution",
-                $"加载器 {selection.LoaderKind} 尚未接入此解析入口。", false));
         var manifest = await _source.GetManifestAsync(ct);
         var entry = manifest.Versions.FirstOrDefault(x => string.Equals(x.Id, selection.BaseVersionId, StringComparison.Ordinal))
             ?? throw new MdclException(MdclError.Of("VERSION_NOT_FOUND", "VersionResolution",
                 $"官方版本清单中不存在 {selection.BaseVersionId}。", false));
-        var sources = new Dictionary<string, MetadataSource>(StringComparer.Ordinal);
-        var merged = await _inheritance.ResolveAsync(selection.BaseVersionId, async (id, token) =>
+
+        ComponentVersion? component = null;
+        if (selection.LoaderKind != LoaderKind.Vanilla)
         {
-            if (string.Equals(id, selection.BaseVersionId, StringComparison.Ordinal))
+            if (!_components.TryGetValue(selection.LoaderKind, out var provider))
+                throw new MdclException(MdclError.Of("COMPONENT_NOT_AVAILABLE", "VersionResolution",
+                    $"加载器 {selection.LoaderKind} 尚未接入此解析入口。", false));
+            component = await provider.GetVersionAsync(selection, entry, target, ct);
+        }
+
+        var sources = new Dictionary<string, MetadataSource>(StringComparer.Ordinal);
+        var rootId = component?.Document.Id ?? selection.BaseVersionId;
+        var merged = await _inheritance.ResolveAsync(rootId, async (id, token) =>
+        {
+            if (component is not null && string.Equals(id, component.Document.Id, StringComparison.Ordinal))
             {
-                var record = await _source.GetVersionAsync(entry, token);
-                sources[id] = new MetadataSource(id, record.SourceUrl, record.Sha1);
-                return record.Document;
+                sources[id] = new MetadataSource(id, component.SourceUrl, component.Sha1);
+                return component.Document;
             }
             var parentEntry = manifest.Versions.FirstOrDefault(x => string.Equals(x.Id, id, StringComparison.Ordinal))
                 ?? throw new MdclException(MdclError.Of("VERSION_PARENT_MISSING", "VersionResolution",
@@ -40,7 +52,8 @@ public sealed class VersionResolver : IVersionResolver
             return parentRecord.Document;
         }, ct);
 
-        return _builder.Build(merged, target,
+        var resolved = _builder.Build(merged, target,
             sources.Values.OrderBy(x => x.VersionId, StringComparer.Ordinal).ToArray());
+        return component is null ? resolved : resolved with { LoaderVersion = component.LoaderVersion };
     }
 }

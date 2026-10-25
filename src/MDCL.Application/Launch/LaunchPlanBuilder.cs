@@ -35,7 +35,7 @@ public sealed class LaunchPlanBuilder
         var classPath = version.Libraries
             .Where(x => x.ArtifactUri is not null)
             .Select(x => Path.Combine(shared, "libraries", x.ClassPathRelativePath))
-            .Append(Path.Combine(shared, "versions", SafeComponent(version.VersionId), "client.jar"))
+            .Append(Path.Combine(shared, "versions", SafeComponent(instance.BaseVersion), "client.jar"))
             .Distinct(StringComparer.Ordinal)
             .ToArray();
         var missing = classPath.Where(x => !File.Exists(x)).ToArray();

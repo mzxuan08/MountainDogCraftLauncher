@@ -16,9 +16,10 @@ public sealed record ResolvedLibrary(
     string? Sha1,
     long? Size,
     ResolvedNative? Native,
-    IReadOnlyList<string> ExtractExclude);
+    IReadOnlyList<string> ExtractExclude,
+    string? HashSource = null);
 
-public sealed record ResolvedNative(string Classifier, string RelativePath, Uri? Uri, string? Sha1, long? Size);
+public sealed record ResolvedNative(string Classifier, string RelativePath, Uri? Uri, string? Sha1, long? Size, string? HashSource = null);
 
 public sealed record ResolvedAssetIndex(string Id, Uri? Uri, string? Sha1, long? Size, long? TotalSize);
 public sealed record ResolvedLogging(string Argument, string FileId, Uri Uri, string? Sha1, long? Size, string Type);
@@ -35,7 +36,8 @@ public sealed record ResolvedVersion(
     ClientDownload? Client,
     JavaRequirement JavaRequirement,
     IReadOnlyList<MetadataSource> Sources,
-    string ContentHash);
+    string ContentHash,
+    string? LoaderVersion = null);
 
 public sealed class ResolvedVersionBuilder
 {
@@ -66,7 +68,7 @@ public sealed class ResolvedVersionBuilder
             if (artifactUri is null && !string.IsNullOrWhiteSpace(baseUrl) && Uri.TryCreate(baseUrl, UriKind.Absolute, out var baseUri))
                 artifactUri = new Uri(baseUri, path);
             var resolved = new ResolvedLibrary(coordinate.Identity, path, artifactUri, primary?.Sha1,
-                primary?.Size, ResolveNative(library, target, context), library.Extract?.Exclude ?? []);
+                primary?.Size, ResolveNative(library, target, context), library.Extract?.Exclude ?? [], library.HashSource);
             libraries.Add(resolved);
             if (resolved.Native is not null) natives.Add(resolved);
         }
@@ -102,7 +104,7 @@ public sealed class ResolvedVersionBuilder
         var archToken = target.GameArchitecture == CpuArchitecture.X64 ? "64" : "arm64";
         var classifier = classifierTemplate.Replace("${arch}", archToken, StringComparison.Ordinal);
         if (library.Downloads?.Classifiers.TryGetValue(classifier, out var artifact) != true || artifact is null) return null;
-        return new ResolvedNative(classifier, artifact.Path, artifact.Url, artifact.Sha1, artifact.Size);
+        return new ResolvedNative(classifier, artifact.Path, artifact.Url, artifact.Sha1, artifact.Size, library.HashSource);
     }
 
     private static JavaRequirement BuildJavaRequirement(VersionDocument document, TargetPlatform target)

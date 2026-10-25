@@ -38,10 +38,10 @@ public sealed class VanillaInstallPlanner : IInstallPlanner
         {
             if (library.ArtifactUri is not null)
                 libraryArtifacts.Add(Artifact($"library:{library.Coordinate}", library.ArtifactUri, library.Size, library.Sha1,
-                    $"libraries/{library.ClassPathRelativePath}", "mojang-library-json"));
+                    $"libraries/{library.ClassPathRelativePath}", library.HashSource ?? "mojang-library-json"));
             if (library.Native?.Uri is not null)
                 libraryArtifacts.Add(Artifact($"native:{library.Coordinate}:{library.Native.Classifier}", library.Native.Uri,
-                    library.Native.Size, library.Native.Sha1, $"libraries/{library.Native.RelativePath}", "mojang-library-json"));
+                    library.Native.Size, library.Native.Sha1, $"libraries/{library.Native.RelativePath}", library.Native.HashSource ?? "mojang-library-json"));
         }
         if (libraryArtifacts.Count > 0) steps.Add(new InstallStep("libraries", [], libraryArtifacts));
 

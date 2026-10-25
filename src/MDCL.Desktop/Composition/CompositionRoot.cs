@@ -43,6 +43,7 @@ public static class CompositionRoot
         var metadata = new MojangMetadataProvider(http, Path.Combine(paths.CacheRoot, "metadata"));
         services.AddSingleton<IVersionMetadataSource>(metadata);
         services.AddSingleton<IAssetIndexSource>(metadata);
+        services.AddSingleton<IComponentVersionProvider, MDCL.Infrastructure.Installers.FabricComponentVersionProvider>();
         services.AddSingleton<IVersionResolver, VersionResolver>();
         services.AddSingleton<IArtifactDownloader>(new ArtifactDownloader(http));
         services.AddSingleton<IInstallPlanner, VanillaInstallPlanner>();
