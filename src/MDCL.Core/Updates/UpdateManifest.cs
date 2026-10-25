@@ -1,3 +1,4 @@
+using System.Security.Cryptography;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 
@@ -25,6 +26,12 @@ public static class UpdateSignature
 
     public static byte[] CanonicalBytes(UpdateManifest manifest) =>
         JsonSerializer.SerializeToUtf8Bytes(manifest, Options);
+
+    public static SignedUpdateDocument Sign(UpdateManifest manifest, RSA privateKey)
+    {
+        var signature = privateKey.SignData(CanonicalBytes(manifest), HashAlgorithmName.SHA256, RSASignaturePadding.Pss);
+        return new SignedUpdateDocument(manifest, Convert.ToBase64String(signature));
+    }
 }
 
 public sealed class SemanticVersion : IComparable<SemanticVersion>

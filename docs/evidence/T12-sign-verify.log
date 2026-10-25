@@ -1,0 +1,4 @@
+MDCL.ReleaseTool sign --manifest manifest.json --key private.pem --out envelope.json
+signed 0.2.0 win-x64 stable
+MDCL.Updater verify --envelope envelope.json --public-key public.pem --channel stable --rid win-x64 --current 0.1.0
+verified 0.2.0 win-x64 stable size=123

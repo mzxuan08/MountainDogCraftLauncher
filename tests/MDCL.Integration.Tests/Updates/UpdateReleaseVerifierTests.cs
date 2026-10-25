@@ -15,8 +15,7 @@ public sealed class UpdateReleaseVerifierTests
         using var rsa = RSA.Create(2048);
         var manifest = new UpdateManifest("0.2.0", "stable", "win-x64", new Uri("https://example.invalid/update.zip"),
             100, new string('a', 64), DateTimeOffset.UtcNow.AddDays(1), "0.1.0");
-        var signature = rsa.SignData(UpdateSignature.CanonicalBytes(manifest), HashAlgorithmName.SHA256, RSASignaturePadding.Pss);
-        var envelope = JsonSerializer.Serialize(new SignedUpdateDocument(manifest, Convert.ToBase64String(signature)), UpdateSignature.Options);
+        var envelope = JsonSerializer.Serialize(UpdateSignature.Sign(manifest, rsa), UpdateSignature.Options);
         var pem = rsa.ExportSubjectPublicKeyInfoPem();
         var verified = UpdateReleaseVerifier.VerifyEnvelope(envelope, pem, "stable", "win-x64", "0.1.0", DateTimeOffset.UtcNow);
         Assert.Equal("0.2.0", verified.Version);
