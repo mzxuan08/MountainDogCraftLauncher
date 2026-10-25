@@ -71,6 +71,8 @@ public static class CompositionRoot
         services.AddSingleton<IAccountService, MicrosoftAccountService>();
         services.AddSingleton<IGameProcessService>(new GameProcessService(Path.Combine(paths.ConfigRoot, "session-temp")));
         services.AddSingleton<LauncherWorkflow>();
+        services.AddSingleton<MDCL.Infrastructure.Installers.MrpackReader>();
+        services.AddSingleton<MDCL.Infrastructure.Installers.MrpackImportService>();
         services.AddSingleton<MainWindowViewModel>();
         return services.BuildServiceProvider();
     }

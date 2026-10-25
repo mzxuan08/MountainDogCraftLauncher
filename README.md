@@ -10,7 +10,7 @@
 - T00—T08 的共享核心和 Windows 闭环已实现，100 项自动化测试通过；三 RID 构建和 Windows zip/macOS `.app` 结构产物已生成。
 - macOS 未在真机运行、未签名/公证；微软真实登录缺少 MDCL public client；`26.3` 未实测。
 - Fabric `0.20.1`/`0.16.14` 可解析和安装，但启动在 tiny-remapper 首次 remap 写 `.tmp` 处失败，F03 未通过。
-- Forge/NeoForge 安装器、mrpack 实际导入、自更新替换器尚未完成；只有本地模组管理、mrpack 安全预览/计划和更新清单验签。
+- Forge/NeoForge 安装器和自更新替换器尚未完成；mrpack 已有安全解析、安装计划与导入流程，但未用真实包跑完整导入/启动。本地模组管理与更新清单验签已完成。
 - 所有未验收事项、证据与限制见 `docs/evidence/T00`—`T12` 和 `release-matrix.md`。不得把构建、安装成功或代码存在写成游戏运行通过。
 
 **推荐采用 C# / .NET 10 LTS + Avalonia + MVVM。共享启动核心，分别实现 Windows 与 macOS 的系统适配，发布 win-x64、osx-arm64、osx-x64 三套产物。**
