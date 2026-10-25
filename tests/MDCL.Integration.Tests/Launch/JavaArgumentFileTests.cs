@@ -24,5 +24,6 @@ public sealed class JavaArgumentFileTests
         using var temp = new TestDirectory();
         await Assert.ThrowsAsync<ArgumentException>(() =>
             JavaArgumentFileWriter.WriteAsync(temp.Path, ["bad\narg"], CancellationToken.None));
+        Assert.Empty(Directory.EnumerateFiles(temp.Path));
     }
 }

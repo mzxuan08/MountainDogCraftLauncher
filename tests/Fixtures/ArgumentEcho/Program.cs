@@ -22,5 +22,10 @@ if (args.Contains("--flood", StringComparer.Ordinal))
 }
 
 if (args.Contains("--sleep", StringComparer.Ordinal)) await Task.Delay(TimeSpan.FromSeconds(30));
+if (args.Contains("--log-secrets", StringComparer.Ordinal))
+{
+    Console.WriteLine("Authorization: Bearer short-bearer");
+    Console.Error.WriteLine("refresh_token=short-refresh");
+}
 var exitIndex = Array.IndexOf(args, "--exit");
 return exitIndex >= 0 && exitIndex + 1 < args.Length && int.TryParse(args[exitIndex + 1], out var exitCode) ? exitCode : 0;

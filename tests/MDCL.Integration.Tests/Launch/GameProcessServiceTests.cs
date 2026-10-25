@@ -12,6 +12,27 @@ namespace MDCL.Integration.Tests.Launch;
 public sealed class GameProcessServiceTests
 {
     [Fact]
+    public async Task BothProcessStreams_AreRedactedBeforePublishing()
+    {
+        using var temp = new TestDirectory();
+        await using var process = await new GameProcessService(Path.Combine(temp.Path, "temp")).StartAsync(
+            Plan(HelperPath(), temp.Path, [], ["--log-secrets"]), LocalSession(), CancellationToken.None);
+        var lines = await ReadAllAsync(process, TimeSpan.FromSeconds(15));
+        Assert.DoesNotContain(lines, x => x.Text.Contains("short-bearer", StringComparison.Ordinal) || x.Text.Contains("short-refresh", StringComparison.Ordinal));
+        Assert.Contains(lines, x => x.Text.Contains("Authorization:", StringComparison.Ordinal) && x.Text.Contains("<redacted>", StringComparison.Ordinal));
+    }
+
+    [Fact]
+    public async Task RejectedJava8LongCommand_DoesNotLeaveSessionDirectory()
+    {
+        using var temp = new TestDirectory();
+        var root = Path.Combine(temp.Path, "temp");
+        var plan = Plan(HelperPath(), temp.Path, [new string('x', 31000)], []) with { JavaMajorVersion = 8 };
+        await Assert.ThrowsAsync<MDCL.Core.Errors.MdclException>(() => new GameProcessService(root).StartAsync(plan, LocalSession(), CancellationToken.None));
+        Assert.True(!Directory.Exists(root) || !Directory.EnumerateFileSystemEntries(root).Any());
+    }
+
+    [Fact]
     public async Task ArgumentsArriveExactlyWithoutShellAndSecretsStayBound()
     {
         using var temp = new TestDirectory();

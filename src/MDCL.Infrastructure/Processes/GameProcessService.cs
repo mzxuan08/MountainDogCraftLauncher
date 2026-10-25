@@ -6,6 +6,7 @@ using MDCL.Core.Accounts;
 using MDCL.Core.Errors;
 using MDCL.Core.Instances;
 using MDCL.Core.Launch;
+using MDCL.Infrastructure.Diagnostics;
 
 namespace MDCL.Infrastructure.Processes;
 
@@ -19,7 +20,6 @@ public sealed class GameProcessService : IGameProcessService
         ct.ThrowIfCancellationRequested();
         var sessionId = Guid.NewGuid();
         var working = Path.Combine(_temporaryRoot, sessionId.ToString("N"));
-        Directory.CreateDirectory(working);
         var arguments = BindArguments(plan, session);
         string? argFile = null;
         if (arguments.Sum(x => x.Length + 1) > 30000)
@@ -30,6 +30,7 @@ public sealed class GameProcessService : IGameProcessService
             argFile = await JavaArgumentFileWriter.WriteAsync(working, arguments, ct);
             arguments = ["@" + argFile];
         }
+        Directory.CreateDirectory(working);
 
         var start = new ProcessStartInfo
         {
@@ -54,6 +55,7 @@ public sealed class GameProcessService : IGameProcessService
         {
             process.Dispose();
             if (argFile is not null) TryDelete(argFile);
+            try { Directory.Delete(working, true); } catch (IOException) { }
             throw new MdclException(MdclError.Of("LAUNCH_PROCESS_START_FAILED", "Launch", "游戏进程启动失败。", false, ex.Message), ex);
         }
         var sessionObject = new GameSession(sessionId, plan, session, process, working, argFile);
@@ -99,6 +101,7 @@ public sealed class GameProcessService : IGameProcessService
     {
         private readonly LaunchPlan _plan;
         private readonly AuthSession _session;
+        private readonly SensitiveDataRedactor _redactor = new();
         private readonly Process _process;
         private readonly string _workingDirectory;
         private readonly string? _argFile;
@@ -149,6 +152,7 @@ public sealed class GameProcessService : IGameProcessService
                     if (line is null) break;
                     if (!string.IsNullOrEmpty(_session.AccessToken))
                         line = line.Replace(_session.AccessToken, "<redacted>", StringComparison.Ordinal);
+                    line = _redactor.RedactPath(_redactor.Redact(line), Environment.GetFolderPath(Environment.SpecialFolder.UserProfile));
                     _logs.Writer.TryWrite(new GameLogLine(DateTimeOffset.UtcNow, stream, line));
                 }
             }
