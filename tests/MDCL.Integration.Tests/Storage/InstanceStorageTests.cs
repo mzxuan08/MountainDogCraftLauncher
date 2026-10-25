@@ -8,6 +8,32 @@ namespace MDCL.Integration.Tests.Storage;
 public sealed class InstanceStorageTests
 {
     [Fact]
+    public async Task NewUnsupportedSchema_IsRejectedBeforeCreatingManifest()
+    {
+        using var temp = new TestDirectory();
+        var root = Path.Combine(temp.Path, "instances");
+        var id = InstanceId.New();
+        var repository = new FileInstanceRepository(root);
+        var error = await Assert.ThrowsAsync<MdclException>(() => repository.SaveAsync(
+            TestManifest(id, "future") with { SchemaVersion = 42 }, 0, CancellationToken.None));
+        Assert.Equal("INSTANCE_SCHEMA_UNSUPPORTED", error.Error.ErrorCode);
+        Assert.False(File.Exists(Path.Combine(root, id.ToString(), "instance.json")));
+    }
+
+    [Fact]
+    public async Task ManifestIdentityMismatch_IsRejected()
+    {
+        using var temp = new TestDirectory();
+        var root = Path.Combine(temp.Path, "instances");
+        var id = InstanceId.New();
+        Directory.CreateDirectory(Path.Combine(root, id.ToString()));
+        await File.WriteAllTextAsync(Path.Combine(root, id.ToString(), "instance.json"),
+            InstanceManifestSerializer.Serialize(TestManifest(InstanceId.New(), "wrong identity")));
+        var error = await Assert.ThrowsAsync<MdclException>(() => new FileInstanceRepository(root).LoadAsync(id, CancellationToken.None));
+        Assert.Equal("INSTANCE_ID_MISMATCH", error.Error.ErrorCode);
+    }
+
+    [Fact]
     public async Task AtomicSave_ChinesePathAndRevisionConflict_AreExplicit()
     {
         using var temp = new TestDirectory();

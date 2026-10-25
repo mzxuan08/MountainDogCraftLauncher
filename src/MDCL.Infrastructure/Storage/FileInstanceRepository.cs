@@ -17,7 +17,10 @@ public sealed class FileInstanceRepository : IInstanceRepository
         try
         {
             await using var stream = new FileStream(path, FileMode.Open, FileAccess.Read, FileShare.Read, 4096, true);
-            return InstanceManifestSerializer.Deserialize(await new StreamReader(stream).ReadToEndAsync(ct));
+            var manifest = InstanceManifestSerializer.Deserialize(await new StreamReader(stream).ReadToEndAsync(ct));
+            if (manifest.InstanceId != id)
+                throw new MdclException(MdclError.Of("INSTANCE_ID_MISMATCH", "Storage", "实例清单身份与目录不一致。", false));
+            return manifest;
         }
         catch (FileNotFoundException ex)
         {
@@ -46,6 +49,7 @@ public sealed class FileInstanceRepository : IInstanceRepository
     public async Task<long> SaveAsync(InstanceManifest manifest, long expectedRevision, CancellationToken ct)
     {
         if (manifest.InstanceId.Value == Guid.Empty) throw new ArgumentException("Instance ID is required.", nameof(manifest));
+        _ = InstanceManifestSerializer.Deserialize(InstanceManifestSerializer.Serialize(manifest));
         var directory = Path.Combine(_instancesRoot, manifest.InstanceId.ToString());
         var path = ManifestPath(manifest.InstanceId);
         Directory.CreateDirectory(directory);
