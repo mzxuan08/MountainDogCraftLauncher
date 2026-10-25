@@ -1,0 +1,764 @@
+{
+  "date": "2026-10-25",
+  "configuration": "Release",
+  "sdk": "10.0.402",
+  "runs": [
+    {
+      "counters": {
+        "total": "19",
+        "executed": "19",
+        "passed": "19",
+        "failed": "0",
+        "error": "0",
+        "timeout": "0",
+        "aborted": "0",
+        "inconclusive": "0",
+        "passedButRunAborted": "0",
+        "notRunnable": "0",
+        "notExecuted": "0",
+        "disconnected": "0",
+        "warning": "0",
+        "completed": "0",
+        "inProgress": "0",
+        "pending": "0"
+      },
+      "tests": [
+        {
+          "name": "MDCL.Core.Tests.Instances.InstanceManifestTests.NewerSchema_IsRejectedInsteadOfDowngraded",
+          "outcome": "Passed"
+        },
+        {
+          "name": "MDCL.Core.Tests.Instances.InstanceManifestTests.Rename_DoesNotChangeStableInstanceId",
+          "outcome": "Passed"
+        },
+        {
+          "name": "MDCL.Core.Tests.Instances.InstanceManifestTests.SchemaRoundTrip_PreservesArgumentArrayAndOpaqueVersion",
+          "outcome": "Passed"
+        },
+        {
+          "name": "MDCL.Core.Tests.Instances.InstanceManifestTests.TargetPlatform_MapsRidAndMojangNamesSeparately(os: MacOS, arch: Arm64, rid: \"osx-arm64\", mojang: \"osx\")",
+          "outcome": "Passed"
+        },
+        {
+          "name": "MDCL.Core.Tests.Instances.InstanceManifestTests.TargetPlatform_MapsRidAndMojangNamesSeparately(os: MacOS, arch: X64, rid: \"osx-x64\", mojang: \"osx\")",
+          "outcome": "Passed"
+        },
+        {
+          "name": "MDCL.Core.Tests.Instances.InstanceManifestTests.TargetPlatform_MapsRidAndMojangNamesSeparately(os: Windows, arch: X64, rid: \"win-x64\", mojang: \"windows\")",
+          "outcome": "Passed"
+        },
+        {
+          "name": "MDCL.Core.Tests.Java.JavaSelectionTests.ArchitectureAndProbeFailures_AreExplainedAndFiltered",
+          "outcome": "Passed"
+        },
+        {
+          "name": "MDCL.Core.Tests.Java.JavaSelectionTests.Constraints_IntersectAndConflictExplicitly",
+          "outcome": "Passed"
+        },
+        {
+          "name": "MDCL.Core.Tests.Java.JavaSelectionTests.InvalidBoundRuntime_DoesNotSilentlyFallBack",
+          "outcome": "Passed"
+        },
+        {
+          "name": "MDCL.Core.Tests.Java.JavaSelectionTests.PreferredButIncompatibleDirectoryJava_DoesNotBeatValidCandidate",
+          "outcome": "Passed"
+        },
+        {
+          "name": "MDCL.Core.Tests.Versions.VersionResolutionTests.Inheritance_CycleIsRejected",
+          "outcome": "Passed"
+        },
+        {
+          "name": "MDCL.Core.Tests.Versions.VersionResolutionTests.Inheritance_MergesParentAndChildArgumentOrder",
+          "outcome": "Passed"
+        },
+        {
+          "name": "MDCL.Core.Tests.Versions.VersionResolutionTests.Inheritance_MissingParentIsExplicit",
+          "outcome": "Passed"
+        },
+        {
+          "name": "MDCL.Core.Tests.Versions.VersionResolutionTests.LegacyArguments_AreTokenizedSeparatelyFromModern",
+          "outcome": "Passed"
+        },
+        {
+          "name": "MDCL.Core.Tests.Versions.VersionResolutionTests.LibraryRules_SelectMacArmLibraries",
+          "outcome": "Passed"
+        },
+        {
+          "name": "MDCL.Core.Tests.Versions.VersionResolutionTests.LibraryRules_SelectWindowsX64AndNatives",
+          "outcome": "Passed"
+        },
+        {
+          "name": "MDCL.Core.Tests.Versions.VersionResolutionTests.LibraryVersionConflict_IsExplicitWhenPolicyRejects",
+          "outcome": "Passed"
+        },
+        {
+          "name": "MDCL.Core.Tests.Versions.VersionResolutionTests.ResolvedHash_IsStableAndPlatformSensitive",
+          "outcome": "Passed"
+        },
+        {
+          "name": "MDCL.Core.Tests.Versions.VersionResolutionTests.VersionId_IsOpaqueAndOfficialJavaRequirementIs25",
+          "outcome": "Passed"
+        }
+      ]
+    },
+    {
+      "counters": {
+        "total": "147",
+        "executed": "147",
+        "passed": "147",
+        "failed": "0",
+        "error": "0",
+        "timeout": "0",
+        "aborted": "0",
+        "inconclusive": "0",
+        "passedButRunAborted": "0",
+        "notRunnable": "0",
+        "notExecuted": "0",
+        "disconnected": "0",
+        "warning": "0",
+        "completed": "0",
+        "inProgress": "0",
+        "pending": "0"
+      },
+      "tests": [
+        {
+          "name": "MDCL.Integration.Tests.Archives.SafeArchiveExtractorTests.CaseCollisionAndDuplicate_AreRejected",
+          "outcome": "Passed"
+        },
+        {
+          "name": "MDCL.Integration.Tests.Archives.SafeArchiveExtractorTests.EntryLimit_IsEnforced",
+          "outcome": "Passed"
+        },
+        {
+          "name": "MDCL.Integration.Tests.Archives.SafeArchiveExtractorTests.Extract_ChineseNamesAndNestedDirectories",
+          "outcome": "Passed"
+        },
+        {
+          "name": "MDCL.Integration.Tests.Archives.SafeArchiveExtractorTests.SymlinkEntry_IsRejected",
+          "outcome": "Passed"
+        },
+        {
+          "name": "MDCL.Integration.Tests.Archives.SafeArchiveExtractorTests.UnsafePath_IsRejectedWithoutWritingOutside(name: \"../escape.txt\")",
+          "outcome": "Passed"
+        },
+        {
+          "name": "MDCL.Integration.Tests.Archives.SafeArchiveExtractorTests.UnsafePath_IsRejectedWithoutWritingOutside(name: \"/absolute.txt\")",
+          "outcome": "Passed"
+        },
+        {
+          "name": "MDCL.Integration.Tests.Archives.SafeArchiveExtractorTests.UnsafePath_IsRejectedWithoutWritingOutside(name: \"C:/drive.txt\")",
+          "outcome": "Passed"
+        },
+        {
+          "name": "MDCL.Integration.Tests.Archives.SafeArchiveExtractorTests.UnsafePath_IsRejectedWithoutWritingOutside(name: \"dir/../../escape.txt\")",
+          "outcome": "Passed"
+        },
+        {
+          "name": "MDCL.Integration.Tests.Archives.SafeArchiveExtractorTests.UnsafePath_IsRejectedWithoutWritingOutside(name: \"dir\\\\..\\\\escape.txt\")",
+          "outcome": "Passed"
+        },
+        {
+          "name": "MDCL.Integration.Tests.Archives.SafeArchiveExtractorTests.UnsafePath_IsRejectedWithoutWritingOutside(name: \"file.txt:ads\")",
+          "outcome": "Passed"
+        },
+        {
+          "name": "MDCL.Integration.Tests.Archives.SafeArchiveExtractorTests.UnsafePath_IsRejectedWithoutWritingOutside(name: \"trailing.\")",
+          "outcome": "Passed"
+        },
+        {
+          "name": "MDCL.Integration.Tests.Archives.TarRuntimeTests.GzipTarRuntime_IsDetectedByContentAndExtracted",
+          "outcome": "Passed"
+        },
+        {
+          "name": "MDCL.Integration.Tests.Archives.TarRuntimeTests.TarEntrySizeLimit_IsEnforced",
+          "outcome": "Passed"
+        },
+        {
+          "name": "MDCL.Integration.Tests.Archives.TarRuntimeTests.UnsafeTar_IsRejected(name: \"../escape\", type: RegularFile, code: \"ARCHIVE_UNSAFE_ENTRY\")",
+          "outcome": "Passed"
+        },
+        {
+          "name": "MDCL.Integration.Tests.Archives.TarRuntimeTests.UnsafeTar_IsRejected(name: \"hardlink\", type: HardLink, code: \"ARCHIVE_LINK_REJECTED\")",
+          "outcome": "Passed"
+        },
+        {
+          "name": "MDCL.Integration.Tests.Archives.TarRuntimeTests.UnsafeTar_IsRejected(name: \"link\", type: SymbolicLink, code: \"ARCHIVE_LINK_REJECTED\")",
+          "outcome": "Passed"
+        },
+        {
+          "name": "MDCL.Integration.Tests.Authentication.CredentialVaultTests.DpapiVault_RoundTripsAndDeletesWithoutPlaintext",
+          "outcome": "Passed"
+        },
+        {
+          "name": "MDCL.Integration.Tests.Authentication.MicrosoftAccountServiceTests.CredentialReadFailure_DoesNotFallBackToPlaintext",
+          "outcome": "Passed"
+        },
+        {
+          "name": "MDCL.Integration.Tests.Authentication.MicrosoftAccountServiceTests.ExpiredCachedSession_RefreshesOnlyOnceUnderConcurrency",
+          "outcome": "Passed"
+        },
+        {
+          "name": "MDCL.Integration.Tests.Authentication.MicrosoftAccountServiceTests.LocalAccount_IsExplicitlyLocalAndDoesNotNeedSecrets",
+          "outcome": "Passed"
+        },
+        {
+          "name": "MDCL.Integration.Tests.Authentication.MicrosoftAccountServiceTests.Login_PersistsPublicProfileAndRefreshToken_AndLogoutDeletesBoth",
+          "outcome": "Passed"
+        },
+        {
+          "name": "MDCL.Integration.Tests.Authentication.MicrosoftAccountServiceTests.NoClientId_MakesRealLoginConditionUnavailable",
+          "outcome": "Passed"
+        },
+        {
+          "name": "MDCL.Integration.Tests.Authentication.MicrosoftAuthProtocolTests.EmptyEntitlements_IsDistinctError",
+          "outcome": "Passed"
+        },
+        {
+          "name": "MDCL.Integration.Tests.Authentication.MicrosoftAuthProtocolTests.FullProtocol_ReturnsProfileAndRefreshToken",
+          "outcome": "Passed"
+        },
+        {
+          "name": "MDCL.Integration.Tests.Authentication.MicrosoftAuthProtocolTests.InvalidGrant_MapsToReauthentication",
+          "outcome": "Passed"
+        },
+        {
+          "name": "MDCL.Integration.Tests.Authentication.MicrosoftAuthProtocolTests.Refresh_RotatesRefreshToken",
+          "outcome": "Passed"
+        },
+        {
+          "name": "MDCL.Integration.Tests.Authentication.MicrosoftAuthProtocolTests.XstsXErr_IsMappedNotTreatedAsNetworkError",
+          "outcome": "Passed"
+        },
+        {
+          "name": "MDCL.Integration.Tests.Downloads.ArtifactDownloaderTests.CancelingWaiter_DoesNotCancelActiveSharedTransfer",
+          "outcome": "Passed"
+        },
+        {
+          "name": "MDCL.Integration.Tests.Downloads.ArtifactDownloaderTests.ChangedEtag_DiscardsPartialAndRestarts",
+          "outcome": "Passed"
+        },
+        {
+          "name": "MDCL.Integration.Tests.Downloads.ArtifactDownloaderTests.Download_VerifiesAndReusesCache",
+          "outcome": "Passed"
+        },
+        {
+          "name": "MDCL.Integration.Tests.Downloads.ArtifactDownloaderTests.HashMismatch_RetriesBoundedAndNeverCommits",
+          "outcome": "Passed"
+        },
+        {
+          "name": "MDCL.Integration.Tests.Downloads.ArtifactDownloaderTests.PartialRange206_ResumesAndVerifies",
+          "outcome": "Passed"
+        },
+        {
+          "name": "MDCL.Integration.Tests.Downloads.ArtifactDownloaderTests.Range416_RechecksFromZero",
+          "outcome": "Passed"
+        },
+        {
+          "name": "MDCL.Integration.Tests.Downloads.ArtifactDownloaderTests.RangeResponse200_RestartsInsteadOfAppending",
+          "outcome": "Passed"
+        },
+        {
+          "name": "MDCL.Integration.Tests.Installers.FabricTests.FabricProvider_SelectsStableLoaderAndAddsMavenHashes",
+          "outcome": "Passed"
+        },
+        {
+          "name": "MDCL.Integration.Tests.Installers.FabricTests.VersionResolver_AppliesFabricProfileAndKeepsLoaderVersion",
+          "outcome": "Passed"
+        },
+        {
+          "name": "MDCL.Integration.Tests.Installers.ForgeInstalledVersionProviderTests.LegacyNeoForgeFor1201UsesForgeVersionId",
+          "outcome": "Passed"
+        },
+        {
+          "name": "MDCL.Integration.Tests.Installers.ForgeInstalledVersionProviderTests.MissingMatchingVersion_IsStructuredError",
+          "outcome": "Passed"
+        },
+        {
+          "name": "MDCL.Integration.Tests.Installers.ForgeInstalledVersionProviderTests.ReadsInstalledForgeVersionJsonWithMatchingParent",
+          "outcome": "Passed"
+        },
+        {
+          "name": "MDCL.Integration.Tests.Installers.ForgeInstalledVersionProviderTests.RealForgeVersionJson_MergesWithVanillaAndKeepsModernArguments",
+          "outcome": "Passed"
+        },
+        {
+          "name": "MDCL.Integration.Tests.Installers.ForgeInstallerServiceTests.DownloaderAndRunner_ReceiveOfficialInstallerAndInstallClientArgs(kind: Forge, game: \"1.20.1\", loader: \"47.2.0\", expectedFile: \"forge-1.20.1-47.2.0-installer.jar\")",
+          "outcome": "Passed"
+        },
+        {
+          "name": "MDCL.Integration.Tests.Installers.ForgeInstallerServiceTests.DownloaderAndRunner_ReceiveOfficialInstallerAndInstallClientArgs(kind: NeoForge, game: \"1.20.1\", loader: \"47.1.106\", expectedFile: \"forge-1.20.1-47.1.106-installer.jar\")",
+          "outcome": "Passed"
+        },
+        {
+          "name": "MDCL.Integration.Tests.Installers.ForgeInstallerServiceTests.DownloaderAndRunner_ReceiveOfficialInstallerAndInstallClientArgs(kind: NeoForge, game: \"1.21.1\", loader: \"21.1.119\", expectedFile: \"neoforge-21.1.119-installer.jar\")",
+          "outcome": "Passed"
+        },
+        {
+          "name": "MDCL.Integration.Tests.Installers.ForgeInstallerServiceTests.FailedInstaller_IsStructuredError",
+          "outcome": "Passed"
+        },
+        {
+          "name": "MDCL.Integration.Tests.Installers.ForgeStagingMergerTests.ConflictingLibrary_IsRejectedWithoutOverwriting",
+          "outcome": "Passed"
+        },
+        {
+          "name": "MDCL.Integration.Tests.Installers.ForgeStagingMergerTests.Merge_CopiesLibrariesAndVersionJson_AndReusesIdentical",
+          "outcome": "Passed"
+        },
+        {
+          "name": "MDCL.Integration.Tests.Installers.ModrinthInstallServiceTests.ExistingMod_AndUnsafeFilename_AreRejected",
+          "outcome": "Passed"
+        },
+        {
+          "name": "MDCL.Integration.Tests.Installers.ModrinthInstallServiceTests.PrimaryFile_IsDownloadedToInstanceModsWithSha512",
+          "outcome": "Passed"
+        },
+        {
+          "name": "MDCL.Integration.Tests.Installers.MrpackOverrideTests.OverrideConflict_IsRejectedWithoutOverwritingUserFile",
+          "outcome": "Passed"
+        },
+        {
+          "name": "MDCL.Integration.Tests.Installers.MrpackOverrideTests.OverridesAndClientOverrides_AreMergedIntoNewInstance",
+          "outcome": "Passed"
+        },
+        {
+          "name": "MDCL.Integration.Tests.Installers.MrpackRecoveryTests.FailedImport_IsNotLaunchableAndRetryReusesInstance",
+          "outcome": "Passed"
+        },
+        {
+          "name": "MDCL.Integration.Tests.Installers.MrpackTests.ClientUnsupportedFile_IsExcludedFromPlan",
+          "outcome": "Passed"
+        },
+        {
+          "name": "MDCL.Integration.Tests.Installers.MrpackTests.LoaderDependencies_MapToInstallerKinds(dependency: \"forge\", version: \"47.2.0\", expected: \"forge\")",
+          "outcome": "Passed"
+        },
+        {
+          "name": "MDCL.Integration.Tests.Installers.MrpackTests.LoaderDependencies_MapToInstallerKinds(dependency: \"neo-forge\", version: \"47.1.106\", expected: \"neoforge\")",
+          "outcome": "Passed"
+        },
+        {
+          "name": "MDCL.Integration.Tests.Installers.MrpackTests.PreviewAndPlan_CaptureComponentsHashesAndOverrides",
+          "outcome": "Passed"
+        },
+        {
+          "name": "MDCL.Integration.Tests.Installers.MrpackTests.UnsafeOverride_IsRejectedDuringPreview",
+          "outcome": "Passed"
+        },
+        {
+          "name": "MDCL.Integration.Tests.Installers.MrpackTests.UnsafePath_IsRejected(path: \"../evil.jar\")",
+          "outcome": "Passed"
+        },
+        {
+          "name": "MDCL.Integration.Tests.Installers.MrpackTests.UnsafePath_IsRejected(path: \"/absolute.jar\")",
+          "outcome": "Passed"
+        },
+        {
+          "name": "MDCL.Integration.Tests.Installers.MrpackTests.UnsafePath_IsRejected(path: \"mods\\\\..\\\\evil.jar\")",
+          "outcome": "Passed"
+        },
+        {
+          "name": "MDCL.Integration.Tests.Installers.MrpackTests.VanillaPackWithoutLoader_IsAccepted",
+          "outcome": "Passed"
+        },
+        {
+          "name": "MDCL.Integration.Tests.Installers.OwnedProcessCancellationTests.CancelInstaller_TerminatesOwnedChildBeforeReturning",
+          "outcome": "Passed"
+        },
+        {
+          "name": "MDCL.Integration.Tests.Installers.OwnedProcessCancellationTests.CancelJavaProbe_TerminatesOwnedChildBeforeReturning",
+          "outcome": "Passed"
+        },
+        {
+          "name": "MDCL.Integration.Tests.Java.BoundRuntimeWorkflowTests.MissingExplicitBinding_NeverInstallsReplacementSilently",
+          "outcome": "Passed"
+        },
+        {
+          "name": "MDCL.Integration.Tests.Java.JavaIntegrationTests.Discovery_DeduplicatesAndKeepsProbeFailuresVisible",
+          "outcome": "Passed"
+        },
+        {
+          "name": "MDCL.Integration.Tests.Java.JavaIntegrationTests.FailedFinalProbe_DoesNotPoisonRuntimeDestination",
+          "outcome": "Passed"
+        },
+        {
+          "name": "MDCL.Integration.Tests.Java.JavaIntegrationTests.JavaVersionParsing(version: \"1.8.0_291\", expected: 8)",
+          "outcome": "Passed"
+        },
+        {
+          "name": "MDCL.Integration.Tests.Java.JavaIntegrationTests.JavaVersionParsing(version: \"17.0.4\", expected: 17)",
+          "outcome": "Passed"
+        },
+        {
+          "name": "MDCL.Integration.Tests.Java.JavaIntegrationTests.JavaVersionParsing(version: \"21.0.7\", expected: 21)",
+          "outcome": "Passed"
+        },
+        {
+          "name": "MDCL.Integration.Tests.Java.JavaIntegrationTests.JavaVersionParsing(version: \"25\", expected: 25)",
+          "outcome": "Passed"
+        },
+        {
+          "name": "MDCL.Integration.Tests.Java.JavaIntegrationTests.ManagedInstaller_DownloadsExtractsProbesAndRegisters",
+          "outcome": "Passed"
+        },
+        {
+          "name": "MDCL.Integration.Tests.Java.JavaIntegrationTests.RealInstalledJava_IsDiscoveredAndProbed",
+          "outcome": "Passed"
+        },
+        {
+          "name": "MDCL.Integration.Tests.Launch.DiagnosticArchiveTests.Export_ContainsOnlyReviewedRedactedReport",
+          "outcome": "Passed"
+        },
+        {
+          "name": "MDCL.Integration.Tests.Launch.DiagnosticsAndNativeTests.LoginResult_ToStringDoesNotExposeRefreshToken",
+          "outcome": "Passed"
+        },
+        {
+          "name": "MDCL.Integration.Tests.Launch.DiagnosticsAndNativeTests.NativeExtractor_MergesNativeJarsAndDropsMetaInf",
+          "outcome": "Passed"
+        },
+        {
+          "name": "MDCL.Integration.Tests.Launch.DiagnosticsAndNativeTests.Redactor_RemovesHeadersTokensQueriesAndKnownSecrets",
+          "outcome": "Passed"
+        },
+        {
+          "name": "MDCL.Integration.Tests.Launch.DiagnosticsAndNativeTests.Redactor_RemovesShortLabelledSecrets(text: \"--accessToken short-mc-token\", secret: \"short-mc-token\")",
+          "outcome": "Passed"
+        },
+        {
+          "name": "MDCL.Integration.Tests.Launch.DiagnosticsAndNativeTests.Redactor_RemovesShortLabelledSecrets(text: \"Cookie: session=private-cookie; other=value\", secret: \"private-cookie\")",
+          "outcome": "Passed"
+        },
+        {
+          "name": "MDCL.Integration.Tests.Launch.DiagnosticsAndNativeTests.Redactor_RemovesShortLabelledSecrets(text: \"code_verifier=short-pkce\", secret: \"short-pkce\")",
+          "outcome": "Passed"
+        },
+        {
+          "name": "MDCL.Integration.Tests.Launch.DiagnosticsAndNativeTests.Redactor_RemovesShortLabelledSecrets(text: \"{\\\"refresh_token\\\":\\\"short-refresh\\\",\\\"ok\\\":true}\", secret: \"short-refresh\")",
+          "outcome": "Passed"
+        },
+        {
+          "name": "MDCL.Integration.Tests.Launch.GameProcessServiceTests.ArgumentsArriveExactlyWithoutShellAndSecretsStayBound",
+          "outcome": "Passed"
+        },
+        {
+          "name": "MDCL.Integration.Tests.Launch.GameProcessServiceTests.BothProcessStreams_AreRedactedBeforePublishing",
+          "outcome": "Passed"
+        },
+        {
+          "name": "MDCL.Integration.Tests.Launch.GameProcessServiceTests.LargeStdoutAndStderr_DoNotDeadlock",
+          "outcome": "Passed"
+        },
+        {
+          "name": "MDCL.Integration.Tests.Launch.GameProcessServiceTests.NonZeroExit_IsCrashedAndNotMainMenuClaim",
+          "outcome": "Passed"
+        },
+        {
+          "name": "MDCL.Integration.Tests.Launch.GameProcessServiceTests.RejectedJava8LongCommand_DoesNotLeaveSessionDirectory",
+          "outcome": "Passed"
+        },
+        {
+          "name": "MDCL.Integration.Tests.Launch.GameProcessServiceTests.ShellEnvironmentJavaOptions_AreRemoved",
+          "outcome": "Passed"
+        },
+        {
+          "name": "MDCL.Integration.Tests.Launch.GameProcessServiceTests.Stop_OnlyTargetsOwnProcessAndReportsUserStop",
+          "outcome": "Passed"
+        },
+        {
+          "name": "MDCL.Integration.Tests.Launch.JavaArgumentFileTests.Writer_QuotesSpacesQuotesAndBackslashesWithoutLosingArguments",
+          "outcome": "Passed"
+        },
+        {
+          "name": "MDCL.Integration.Tests.Launch.JavaArgumentFileTests.Writer_RejectsNewlines",
+          "outcome": "Passed"
+        },
+        {
+          "name": "MDCL.Integration.Tests.Launch.LaunchPlanBuilderTests.BuildsClasspathMemoryAndLeavesAuthForExecutionBoundary",
+          "outcome": "Passed"
+        },
+        {
+          "name": "MDCL.Integration.Tests.Launch.LaunchPlanBuilderTests.ForgeUsesBaseVersionJarAndVersionNameForIgnoreList",
+          "outcome": "Passed"
+        },
+        {
+          "name": "MDCL.Integration.Tests.Launch.LaunchPlanBuilderTests.MissingDependency_ReturnsPrecheckError",
+          "outcome": "Passed"
+        },
+        {
+          "name": "MDCL.Integration.Tests.Metadata.ModrinthProviderTests.HttpFailure_IsStructured",
+          "outcome": "Passed"
+        },
+        {
+          "name": "MDCL.Integration.Tests.Metadata.ModrinthProviderTests.Search_ParsesProjects",
+          "outcome": "Passed"
+        },
+        {
+          "name": "MDCL.Integration.Tests.Metadata.ModrinthProviderTests.Versions_ApplyGameAndLoaderFilterAndParsePrimaryFile",
+          "outcome": "Passed"
+        },
+        {
+          "name": "MDCL.Integration.Tests.Metadata.MojangMetadataProviderTests.HashMismatch_IsRejectedAndNotCached",
+          "outcome": "Passed"
+        },
+        {
+          "name": "MDCL.Integration.Tests.Metadata.MojangMetadataProviderTests.MutableManifest_IsRefreshedAcrossLauncherStarts",
+          "outcome": "Passed"
+        },
+        {
+          "name": "MDCL.Integration.Tests.Metadata.MojangMetadataProviderTests.VerifiedVersionJson_IsCachedAndReused",
+          "outcome": "Passed"
+        },
+        {
+          "name": "MDCL.Integration.Tests.Mods.LocalModServiceTests.ListsMetadataAndTogglesWithoutChangingOtherMods",
+          "outcome": "Passed"
+        },
+        {
+          "name": "MDCL.Integration.Tests.Mods.LocalModServiceTests.RunningInstanceLease_PreventsModification",
+          "outcome": "Passed"
+        },
+        {
+          "name": "MDCL.Integration.Tests.Recovery.OperationCoordinatorTests.Cancel_LeavesRecoverableJournalAndCanResume",
+          "outcome": "Passed"
+        },
+        {
+          "name": "MDCL.Integration.Tests.Recovery.OperationCoordinatorTests.CompletedJournal_RepairsCorruptArtifactAndInstallsIntoAnotherTarget",
+          "outcome": "Passed"
+        },
+        {
+          "name": "MDCL.Integration.Tests.Recovery.OperationCoordinatorTests.MissingDependency_FailsWithoutRunningStep",
+          "outcome": "Passed"
+        },
+        {
+          "name": "MDCL.Integration.Tests.Recovery.OperationCoordinatorTests.SuccessfulPlan_IsIdempotentAndJournaled",
+          "outcome": "Passed"
+        },
+        {
+          "name": "MDCL.Integration.Tests.Recovery.VanillaInstallPlannerTests.MissingOfficialHash_RejectsInstallPlan",
+          "outcome": "Passed"
+        },
+        {
+          "name": "MDCL.Integration.Tests.Recovery.VanillaInstallPlannerTests.Planner_BuildsClientLibrariesAssetsAndLoggingArtifacts",
+          "outcome": "Passed"
+        },
+        {
+          "name": "MDCL.Integration.Tests.Storage.InstanceLifecycleTests.Copy_CreatesIndependentIdentityAndUserFiles",
+          "outcome": "Passed"
+        },
+        {
+          "name": "MDCL.Integration.Tests.Storage.InstanceLifecycleTests.OwnedInstance_CannotBeMovedWhileRunning",
+          "outcome": "Passed"
+        },
+        {
+          "name": "MDCL.Integration.Tests.Storage.InstanceLifecycleTests.RenameTrashAndRestore_PreserveIdentityDataAndSharedFiles",
+          "outcome": "Passed"
+        },
+        {
+          "name": "MDCL.Integration.Tests.Storage.InstanceStorageTests.AtomicSave_ChinesePathAndRevisionConflict_AreExplicit",
+          "outcome": "Passed"
+        },
+        {
+          "name": "MDCL.Integration.Tests.Storage.InstanceStorageTests.Index_CanBeDeletedAndRebuiltFromManifests",
+          "outcome": "Passed"
+        },
+        {
+          "name": "MDCL.Integration.Tests.Storage.InstanceStorageTests.InterruptedTemporaryWrite_DoesNotReplaceValidManifest",
+          "outcome": "Passed"
+        },
+        {
+          "name": "MDCL.Integration.Tests.Storage.InstanceStorageTests.Lease_RejectsConcurrentWriterAndCanBeReacquired",
+          "outcome": "Passed"
+        },
+        {
+          "name": "MDCL.Integration.Tests.Storage.InstanceStorageTests.ManifestIdentityMismatch_IsRejected",
+          "outcome": "Passed"
+        },
+        {
+          "name": "MDCL.Integration.Tests.Storage.InstanceStorageTests.NewUnsupportedSchema_IsRejectedBeforeCreatingManifest",
+          "outcome": "Passed"
+        },
+        {
+          "name": "MDCL.Integration.Tests.Storage.InstanceStorageTests.RevisionUpgrade_KeepsPreviousManifestBackup",
+          "outcome": "Passed"
+        },
+        {
+          "name": "MDCL.Integration.Tests.Storage.InstanceStorageTests.SameVersionInstances_RemainIndependent",
+          "outcome": "Passed"
+        },
+        {
+          "name": "MDCL.Integration.Tests.Storage.InstanceStorageTests.UnknownNewSchema_IsNeverOverwritten",
+          "outcome": "Passed"
+        },
+        {
+          "name": "MDCL.Integration.Tests.Storage.PlatformPathTests.ExternalLibraryAndCaseIdentity_AreNotCollapsedByLauncher",
+          "outcome": "Passed"
+        },
+        {
+          "name": "MDCL.Integration.Tests.Storage.PlatformPathTests.MacPaths_UseDistinctSupportCacheAndLogsDirectories",
+          "outcome": "Passed"
+        },
+        {
+          "name": "MDCL.Integration.Tests.Storage.PlatformPathTests.WindowsPaths_AreOutsideInstallationDirectory",
+          "outcome": "Passed"
+        },
+        {
+          "name": "MDCL.Integration.Tests.Storage.ResolvedCommitTests.ManifestCommitFailure_BlocksReopenedSnapshotUntilRepair(cancel: False)",
+          "outcome": "Passed"
+        },
+        {
+          "name": "MDCL.Integration.Tests.Storage.ResolvedCommitTests.ManifestCommitFailure_BlocksReopenedSnapshotUntilRepair(cancel: True)",
+          "outcome": "Passed"
+        },
+        {
+          "name": "MDCL.Integration.Tests.Updates.UpdateCheckServiceTests.SignedManifestAndPackage_AreDownloadedAndVerified",
+          "outcome": "Passed"
+        },
+        {
+          "name": "MDCL.Integration.Tests.Updates.UpdateCheckServiceTests.TamperedEnvelope_BlocksPackageDownload",
+          "outcome": "Passed"
+        },
+        {
+          "name": "MDCL.Integration.Tests.Updates.UpdateInstallerTests.Apply_BackupAndRollback_RestoreOldDirectory",
+          "outcome": "Passed"
+        },
+        {
+          "name": "MDCL.Integration.Tests.Updates.UpdateInstallerTests.CorruptPackage_IsRejectedAndOldTargetUntouched",
+          "outcome": "Passed"
+        },
+        {
+          "name": "MDCL.Integration.Tests.Updates.UpdateInstallerTests.FailedHealthCheck_AutomaticallyRestoresOldApplication",
+          "outcome": "Passed"
+        },
+        {
+          "name": "MDCL.Integration.Tests.Updates.UpdateInstallerTests.InterruptedReplacement_RecoveryIsIdempotentAndPreservesUserData(newPlaced: False)",
+          "outcome": "Passed"
+        },
+        {
+          "name": "MDCL.Integration.Tests.Updates.UpdateInstallerTests.InterruptedReplacement_RecoveryIsIdempotentAndPreservesUserData(newPlaced: True)",
+          "outcome": "Passed"
+        },
+        {
+          "name": "MDCL.Integration.Tests.Updates.UpdateInstallerTests.MacAppTar_UpdatesActualBundleLayoutAndRestoresExecutionMode(rid: \"osx-arm64\")",
+          "outcome": "Passed"
+        },
+        {
+          "name": "MDCL.Integration.Tests.Updates.UpdateInstallerTests.MacAppTar_UpdatesActualBundleLayoutAndRestoresExecutionMode(rid: \"osx-x64\")",
+          "outcome": "Passed"
+        },
+        {
+          "name": "MDCL.Integration.Tests.Updates.UpdateManifestTests.ExpiredSignedManifest_IsRejected",
+          "outcome": "Passed"
+        },
+        {
+          "name": "MDCL.Integration.Tests.Updates.UpdateManifestTests.MinimumLauncherVersion_IsEnforced",
+          "outcome": "Passed"
+        },
+        {
+          "name": "MDCL.Integration.Tests.Updates.UpdateManifestTests.PackageSizeMustMatchEvenWhenHashIsCorrect",
+          "outcome": "Passed"
+        },
+        {
+          "name": "MDCL.Integration.Tests.Updates.UpdateManifestTests.PrereleaseDowngrade_IsRejected(offered: \"0.2.0-alpha.1\", current: \"0.2.0-alpha.2\")",
+          "outcome": "Passed"
+        },
+        {
+          "name": "MDCL.Integration.Tests.Updates.UpdateManifestTests.PrereleaseDowngrade_IsRejected(offered: \"0.2.0-alpha.2\", current: \"0.2.0-alpha.10\")",
+          "outcome": "Passed"
+        },
+        {
+          "name": "MDCL.Integration.Tests.Updates.UpdateManifestTests.PrereleaseDowngrade_IsRejected(offered: \"0.2.0-rc.1\", current: \"0.2.0\")",
+          "outcome": "Passed"
+        },
+        {
+          "name": "MDCL.Integration.Tests.Updates.UpdateManifestTests.SignedManifest_VerifiesAndPackageHashIsChecked",
+          "outcome": "Passed"
+        },
+        {
+          "name": "MDCL.Integration.Tests.Updates.UpdateManifestTests.TamperedManifest_IsRejectedBeforeBusinessRules",
+          "outcome": "Passed"
+        },
+        {
+          "name": "MDCL.Integration.Tests.Updates.UpdateManifestTests.WrongRidAndDowngrade_AreRejected",
+          "outcome": "Passed"
+        },
+        {
+          "name": "MDCL.Integration.Tests.Updates.UpdateProcessGuardTests.MissingProcess_ReturnsImmediately",
+          "outcome": "Passed"
+        },
+        {
+          "name": "MDCL.Integration.Tests.Updates.UpdateProcessGuardTests.RunningCurrentProcess_TimesOut",
+          "outcome": "Passed"
+        },
+        {
+          "name": "MDCL.Integration.Tests.Updates.UpdateReleaseVerifierTests.PemVerifier_AcceptsOnlyMatchingSignedEnvelope",
+          "outcome": "Passed"
+        },
+        {
+          "name": "MDCL.Integration.Tests.Versions.VersionResolverTests.MissingParent_ReturnsStructuredError",
+          "outcome": "Passed"
+        },
+        {
+          "name": "MDCL.Integration.Tests.Versions.VersionResolverTests.OpaqueVersionIds_ResolveWithoutSemverOrdering",
+          "outcome": "Passed"
+        },
+        {
+          "name": "MDCL.Integration.Tests.Versions.VersionResolverTests.ResolvesExactIdsAndMergesParent",
+          "outcome": "Passed"
+        },
+        {
+          "name": "MDCL.Integration.Tests.Versions.VersionResolverTests.SameInput_ProducesSameContentHash",
+          "outcome": "Passed"
+        }
+      ]
+    },
+    {
+      "counters": {
+        "total": "5",
+        "executed": "5",
+        "passed": "5",
+        "failed": "0",
+        "error": "0",
+        "timeout": "0",
+        "aborted": "0",
+        "inconclusive": "0",
+        "passedButRunAborted": "0",
+        "notRunnable": "0",
+        "notExecuted": "0",
+        "disconnected": "0",
+        "warning": "0",
+        "completed": "0",
+        "inProgress": "0",
+        "pending": "0"
+      },
+      "tests": [
+        {
+          "name": "MDCL.Desktop.Tests.InstanceRowTests.InstanceRow_ShowsStableVersionAndName",
+          "outcome": "Passed"
+        },
+        {
+          "name": "MDCL.Desktop.Tests.WorkflowInteractionTests.ImportWithoutReviewedPreview_IsDisabled",
+          "outcome": "Passed"
+        },
+        {
+          "name": "MDCL.Desktop.Tests.WorkflowInteractionTests.InstallCancellation_ReleasesBusyStateAndCanRetry",
+          "outcome": "Passed"
+        },
+        {
+          "name": "MDCL.Desktop.Tests.WorkflowInteractionTests.JavaDiscovery_UsesBindingOfInstanceSelectedAfterAwait",
+          "outcome": "Passed"
+        },
+        {
+          "name": "MDCL.Desktop.Tests.WorkflowInteractionTests.MissingInstance_DisablesInstallLaunchAndStop",
+          "outcome": "Passed"
+        }
+      ]
+    }
+  ],
+  "total": 171,
+  "passed": 171,
+  "failed": 0,
+  "packagingTests": {
+    "passed": 2,
+    "command": "python -m unittest discover -s packaging/tests -v"
+  }
+}

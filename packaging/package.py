@@ -12,6 +12,7 @@ import xml.etree.ElementTree as ET
 import zipfile
 from datetime import datetime, timezone
 from pathlib import Path
+from source_info import revision, export
 
 
 def sha256(path):
@@ -41,7 +42,7 @@ def verify_binary(path, rid):
 
 def build(root, rids):
     version = ET.parse(root / "Directory.Build.props").findtext(".//Version")
-    commit = subprocess.check_output(["git", "rev-parse", "HEAD"], cwd=root, text=True).strip()
+    commit = revision(root)
     release = root / "artifacts/packages" / f"MDCL-{version}-{commit[:8]}"
     release.mkdir(parents=True, exist_ok=True)
     stage_root = root / "artifacts/work" / ("package-" + datetime.now(timezone.utc).strftime("%Y%m%dT%H%M%S%f"))
@@ -106,7 +107,7 @@ def build(root, rids):
             "sha256": sha256(package), "signed": False, "runtimeVerification": "see evidence/release-matrix.md"})
     shutil.copytree(common, release, dirs_exist_ok=True)
     source = release / f"MDCL-{version}-source.zip"
-    subprocess.run(["git", "archive", "--format=zip", "--output=" + str(source), "HEAD"], cwd=root, check=True)
+    export(root, source)
     shutil.copytree(root / "docs/evidence", release / "evidence", dirs_exist_ok=True)
     write_json(release / "release-manifest.json", {"version": version, "commit": commit,
         "builtAt": datetime.now(timezone.utc).isoformat(), "targets": targets,

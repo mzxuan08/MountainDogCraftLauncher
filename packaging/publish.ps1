@@ -15,6 +15,9 @@ try {
         if ($LASTEXITCODE -ne 0) { throw 'Tests failed.' }
     }
     $buildId = [Guid]::NewGuid().ToString('N')
+    $mdclPython = (Get-Command python -ErrorAction Stop).Source
+    $mdclRevision = & $mdclPython packaging/source_info.py $mdclRoot
+    if ($LASTEXITCODE -ne 0) { throw 'Cannot verify source provenance.' }
     $index = @{}
     foreach ($rid in $RuntimeIdentifiers) {
         $output = Join-Path $mdclRoot "artifacts/publish/$buildId/$rid"
@@ -22,7 +25,7 @@ try {
         if ($LASTEXITCODE -ne 0) { throw "Publish failed for $rid." }
         & $mdclDotnet publish src/MDCL.Updater/MDCL.Updater.csproj -c $Configuration -r $rid --self-contained true --no-restore -o (Join-Path $output 'updater')
         if ($LASTEXITCODE -ne 0) { throw "Updater publish failed for $rid." }
-        @{ rid=$rid; commit=(& git rev-parse HEAD); sdk=(& $mdclDotnet --version); signed=$false } |
+        @{ rid=$rid; commit=$mdclRevision; sdk=(& $mdclDotnet --version); signed=$false } |
             ConvertTo-Json | Set-Content -LiteralPath (Join-Path $output 'build-info.json') -Encoding utf8
         $index[$rid] = $output
     }

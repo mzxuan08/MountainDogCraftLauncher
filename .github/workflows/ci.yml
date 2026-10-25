@@ -26,6 +26,8 @@ jobs:
         with:
           python-version: '3.12'
       - shell: pwsh
+        run: python -m unittest discover -s packaging/tests -v
+      - shell: pwsh
         run: ./packaging/publish.ps1 -RuntimeIdentifiers '${{ matrix.rid }}'
       - shell: pwsh
         run: ./packaging/package.ps1 -SkipPublish -RuntimeIdentifiers '${{ matrix.rid }}'

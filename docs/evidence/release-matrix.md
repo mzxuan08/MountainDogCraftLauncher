@@ -1,23 +1,24 @@
-# MDCL 发布矩阵（2026-10-25）
+# MDCL 0.2.0-alpha.1 发布矩阵
 
-状态说明：只有明确记录的系统、架构和操作才算通过。交叉编译不是运行通过。
+2026-10-25。开发预览版，未达到全部正式分发验收目标。发布目录 release-manifest.json 和 SHA256SUMS 记录实际提交、文件大小与摘要；历史 0.1.0 包不能替代本版。
 
-| 目标 | 构建 | 包结构 | 真机窗口 | 原版启动 | 签名/公证 | 状态 |
-| --- | --- | --- | --- | --- | --- | --- |
-| win-x64 | 通过（本机 .NET 10.0.402） | Windows zip 116,707,626 字节，含 `updater/MDCL.Updater.exe` 与新标签页 UI | 通过 | 1.20.1 原版主菜单、退出、二次启动通过；Forge 47.2.0 安装并进入主菜单；Forge 47.2.0 与 NeoForge 47.1.106 均进入 1.20.1 主菜单；新版 UI 已截图核验 | 未签名（开发测试包） | Windows 开发可用，正式分发未完成 |
-| osx-arm64 | 交叉发布通过 | `.app` 结构 + 未签名 tar.gz 已生成，80,181,641 字节 | 未实测 | 未实测 | 未签名/未公证 | 仅构建证据，不可分发 |
-| osx-x64 | 交叉发布通过 | `.app` 结构 + 未签名 tar.gz 已生成，84,741,214 字节 | 未实测 | 未实测 | 未签名/未公证 | 仅构建证据，不可分发 |
+| 目标 | 交付 | 运行证据 | 未验证 |
+| --- | --- | --- | --- |
+| win-x64 | 自包含 ZIP，桌面与独立 updater | 本机 .NET 10.0.402 编译/测试；原版 1.20.1 和 26.3 各两次主菜单、正常退出；蓝白 UI 七页、两种窗口尺寸导出 | 干净 Windows 用户环境、正式签名、完整性能指标 |
+| osx-arm64 | 自包含未签名 `.app.tar.gz`，含执行位 | Windows 交叉发布；Mach-O arm64 头及 bundle 结构检查 | Apple Silicon 真机、窗口、Java、Keychain、游戏、Gatekeeper、公证 |
+| osx-x64 | 自包含未签名 `.app.tar.gz`，含执行位 | Windows 交叉发布；Mach-O x64 头及 bundle 结构检查 | Intel Mac 真机、窗口、Java、Keychain、游戏、Gatekeeper、公证 |
 
-## 外部阻塞项
+## 固定样本
 
-- Apple Silicon / Intel Mac 设备：窗口、Java 发现、Keychain、原生启动与 Gatekeeper 未验证。
-- Apple Developer ID、公证凭据：正式 macOS 分发未完成。
-- MDCL Microsoft public client：真实微软登录未验证。
-- Intel Mac / Rosetta：未验证，不能用交叉编译或 Rosetta 结果替代真机验收。
+- 原版 1.20.1：Microsoft OpenJDK 17.0.4.1，真实安装、两次主菜单、两次 Quit Game 退出码 0。证据 continuation-1.20.1-*.png。
+- 原版 26.3：按官方元数据自动安装 Temurin 25.0.4+101.0.LTS x64；中文路径；两次主菜单、两次 Quit Game 退出码 0。证据 continuation-26.3-*.jpg。
+- Forge 47.2.0、NeoForge 47.1.106、Forge + Embeddium 整合包：保留原开发阶段 Windows 主菜单证据，本轮未重新手工跑全组合。
+- Fabric 0.16.14 / 0.20.1：首次 remap 失败；F03/F04 未通过，详见 continuation-T09.md。不将人工预 remap 主菜单算作首次安装成功。
 
-## 固定回归样本
+## 发布边界
 
-- `1.20.1`：Windows x64 本地身份，真实 Mojang 安装，主菜单/退出/二次启动通过。
-- `26.3`：尚未安装启动。其官方元数据要求 Java 25，需另行在线验证。
-
-所有哈希见发布目录 `SHA256SUMS.txt`；包内 `release-manifest.json` 标记 `signed=false`。
+- 自有源码 MIT，第三方组件逐项许可；发布不包含 Minecraft 客户端和 Java 分发包。
+- 未提供 MDCL 专属 Microsoft public client，真实微软登录 U01 未验证；协议 fixture 不能替代账号验收。
+- 更新器可用临时测试钥匙验签及回退，但这不构成生产信任链。生产根密钥、轮换/撤销、平台签名仍待接入；不启用桌面自动更新。
+- Mac 产物明确标为 UNSIGNED / UNVERIFIED；交叉编译不代表运行或 Gatekeeper 通过。远程 CI 状态以 GitHub Actions 实际记录为准。
+- 全部原始验收目标仍保留在 docs/MDCL-验收矩阵.md；未覆盖的磁盘满、断电、多 DPI、跨卷及性能压力场景不宣称通过。

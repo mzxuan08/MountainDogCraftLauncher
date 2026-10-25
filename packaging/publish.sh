@@ -13,7 +13,7 @@ if [[ -x "$MDCL_ROOT/../.dotnet10/dotnet" ]]; then DOTNET="$MDCL_ROOT/../.dotnet
 "$DOTNET" build MDCL.sln -c Release --no-restore
 "$DOTNET" test MDCL.sln -c Release --no-build --logger trx --results-directory artifacts/verification/release
 BUILD_ID="$(python3 -c 'import uuid; print(uuid.uuid4().hex)')"
-COMMIT="$(git rev-parse HEAD)"
+COMMIT="$(python3 packaging/source_info.py "$MDCL_ROOT")"
 SDK="$("$DOTNET" --version)"
 RIDS=("${@}")
 if [[ ${#RIDS[@]} -eq 0 ]]; then RIDS=(win-x64 osx-arm64 osx-x64); fi
