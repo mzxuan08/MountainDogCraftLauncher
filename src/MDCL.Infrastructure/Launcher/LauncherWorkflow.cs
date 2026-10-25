@@ -8,6 +8,7 @@ using MDCL.Core.Instances;
 using MDCL.Core.Java;
 using MDCL.Core.Launch;
 using MDCL.Core.Versions;
+using MDCL.Infrastructure.Installers;
 using MDCL.Infrastructure.Processes;
 using MDCL.Infrastructure.Storage;
 
@@ -31,6 +32,8 @@ public sealed class LauncherWorkflow
     private readonly IJavaRuntimeInstaller _javaInstaller;
     private readonly IAccountService _accounts;
     private readonly IGameProcessService _processes;
+    private readonly ForgeInstallerService _forgeInstaller;
+    private readonly ForgeStagingMerger _forgeMerger = new();
     private readonly NativeLibraryExtractor _natives = new();
     private readonly ResolvedVersionStore _resolvedStore = new();
 
@@ -38,8 +41,9 @@ public sealed class LauncherWorkflow
         IAppPaths paths, IInstanceRepository repository, IInstanceIndex index, IInstanceLeaseManager leases,
         IVersionResolver resolver, IInstallPlanner planner, IOperationCoordinator coordinator,
         IJavaDiscovery javaDiscovery, IJavaSelector javaSelector, IJavaRuntimeInstaller javaInstaller,
-        IAccountService accounts, IGameProcessService processes)
+        IAccountService accounts, IGameProcessService processes, ForgeInstallerService forgeInstaller)
     {
+        _forgeInstaller = forgeInstaller;
         _paths = paths;
         _repository = repository;
         _index = index;
@@ -150,6 +154,30 @@ public sealed class LauncherWorkflow
         await _resolvedStore.SaveAsync(instanceDirectory, resolved, ct);
         await _repository.SaveAsync(manifest with { Loader = new LoaderDescriptor(LoaderKind.Fabric, resolved.LoaderVersion) }, manifest.Revision, ct);
         await _index.RebuildAsync(ct);
+        return new InstallOutcome(await _repository.LoadAsync(instanceId, ct), resolved);
+    }
+
+    public async Task<InstallOutcome> InstallForgeAsync(
+        InstanceId instanceId, LoaderKind kind, string loaderVersion, IProgress<OperationEvent>? progress, CancellationToken ct)
+    {
+        if (kind is not (LoaderKind.Forge or LoaderKind.NeoForge))
+            throw new MdclException(MdclError.Of("LOADER_KIND_INVALID", "Forge", "不是 Forge/NeoForge 安装请求。", false));
+        var manifest = await _repository.LoadAsync(instanceId, ct);
+        await using var lease = await _leases.AcquireAsync(instanceId, "install-forge", ct);
+        var vanilla = await _resolver.ResolveAsync(new VersionSelection(manifest.BaseVersion), Target, ct);
+        var java = await EnsureJavaAsync(manifest, vanilla, ct);
+        progress?.Report(new OperationEvent("forge-install", "installer", 1, OperationState.Running, null, null, "installer-started", DateTimeOffset.UtcNow));
+        var installed = await _forgeInstaller.InstallAsync(
+            new ForgeInstallRequest(kind, manifest.BaseVersion, loaderVersion.Trim()), java.Executable, _paths.StagingRoot, null, ct);
+        await _forgeMerger.MergeAsync(installed.StagingDirectory, _paths.SharedRoot, ct);
+        var resolved = await _resolver.ResolveAsync(
+            new VersionSelection(manifest.BaseVersion, kind, loaderVersion.Trim()), Target, ct);
+        var instanceDirectory = Path.Combine(_paths.InstancesRoot, instanceId.ToString());
+        await _resolvedStore.SaveAsync(instanceDirectory, resolved, ct);
+        await _repository.SaveAsync(manifest with { Loader = new LoaderDescriptor(kind, loaderVersion.Trim()) }, manifest.Revision, ct);
+        await _index.RebuildAsync(ct);
+        try { Directory.Delete(installed.StagingDirectory, true); } catch (IOException) { }
+        progress?.Report(new OperationEvent("forge-install", "installer", 2, OperationState.Completed, null, null, "installer-completed", DateTimeOffset.UtcNow));
         return new InstallOutcome(await _repository.LoadAsync(instanceId, ct), resolved);
     }
 

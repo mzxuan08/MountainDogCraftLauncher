@@ -59,6 +59,8 @@ public static class CompositionRoot
             return new JavaDiscovery(sp.GetRequiredService<IJavaProbe>(), paths.RuntimesRoot, locations);
         });
         services.AddSingleton<IJavaSelector, JavaSelector>();
+        services.AddSingleton<MDCL.Infrastructure.Installers.IInstallerProcessRunner, MDCL.Infrastructure.Installers.ProcessInstallerRunner>();
+        services.AddSingleton<MDCL.Infrastructure.Installers.ForgeInstallerService>();
         services.AddSingleton<IJavaRuntimePackageSource>(new AdoptiumJavaPackageSource(http));
         services.AddSingleton<IJavaRuntimeInstaller>(sp => new JavaRuntimeInstaller(
             sp.GetRequiredService<IJavaRuntimePackageSource>(), sp.GetRequiredService<IArtifactDownloader>(),
