@@ -62,6 +62,7 @@ public sealed partial class MainWindowViewModel : ObservableObject
     [ObservableProperty] private string _newVersion = "1.20.1";
     [ObservableProperty] private string _localDisplayName = "本地玩家";
     [ObservableProperty] private string _fabricVersion = "";
+    [ObservableProperty] private string _forgeVersion = "";
     [ObservableProperty] private bool _isBusy;
     [ObservableProperty] private bool _isGameRunning;
     [ObservableProperty] private string _progressText = "";
@@ -255,6 +256,28 @@ public sealed partial class MainWindowViewModel : ObservableObject
 
     private bool CanInstallModrinth() => !IsBusy && SelectedInstance is not null && SelectedModrinthProject is not null;
 
+    [RelayCommand(CanExecute = nameof(CanInstallForge))]
+    private Task InstallForgeAsync() => InstallForgeCoreAsync(LoaderKind.Forge);
+
+    [RelayCommand(CanExecute = nameof(CanInstallForge))]
+    private Task InstallNeoForgeAsync() => InstallForgeCoreAsync(LoaderKind.NeoForge);
+
+    private async Task InstallForgeCoreAsync(LoaderKind kind)
+    {
+        var instance = SelectedInstance;
+        if (instance is null) return;
+        await RunAsync(async () =>
+        {
+            Status = $"正在安装 {kind} {ForgeVersion}…";
+            var outcome = await _workflow.InstallForgeAsync(instance.Id, kind, ForgeVersion.Trim(), null, CancellationToken.None);
+            await RefreshCoreAsync();
+            SelectedInstance = Instances.FirstOrDefault(x => x.Id == instance.Id);
+            Status = $"{kind} {outcome.Manifest.Loader.Version} 已安装到“{instance.Manifest.DisplayName}”。";
+        });
+    }
+
+    private bool CanInstallForge() => !IsBusy && SelectedInstance is not null && !string.IsNullOrWhiteSpace(ForgeVersion);
+
     [RelayCommand(CanExecute = nameof(CanInstall))]
     private async Task InstallFabricAsync()
     {
@@ -388,6 +411,8 @@ public sealed partial class MainWindowViewModel : ObservableObject
         CreateCommand.NotifyCanExecuteChanged();
         InstallCommand.NotifyCanExecuteChanged();
         InstallFabricCommand.NotifyCanExecuteChanged();
+        InstallForgeCommand.NotifyCanExecuteChanged();
+        InstallNeoForgeCommand.NotifyCanExecuteChanged();
         LaunchCommand.NotifyCanExecuteChanged();
         StopCommand.NotifyCanExecuteChanged();
         AddLocalCommand.NotifyCanExecuteChanged();
@@ -416,6 +441,11 @@ public sealed partial class MainWindowViewModel : ObservableObject
     partial void OnNewInstanceNameChanged(string value) => CreateCommand.NotifyCanExecuteChanged();
     partial void OnNewVersionChanged(string value) => CreateCommand.NotifyCanExecuteChanged();
     partial void OnLocalDisplayNameChanged(string value) => AddLocalCommand.NotifyCanExecuteChanged();
+    partial void OnForgeVersionChanged(string value)
+    {
+        InstallForgeCommand.NotifyCanExecuteChanged();
+        InstallNeoForgeCommand.NotifyCanExecuteChanged();
+    }
 
     private static string FormatBytes(long bytes) => bytes switch
     {

@@ -41,6 +41,11 @@
             <Button Content="安装 / 修复当前实例" Command="{Binding InstallCommand}" HorizontalAlignment="Stretch" />
             <TextBox Text="{Binding FabricVersion}" PlaceholderText="Fabric loader 版本（空=最新稳定）" />
             <Button Content="安装 Fabric" Command="{Binding InstallFabricCommand}" HorizontalAlignment="Stretch" />
+            <TextBox Text="{Binding ForgeVersion}" PlaceholderText="Forge / NeoForge 固定版本（必填）" />
+            <Grid ColumnDefinitions="*,*" ColumnSpacing="6">
+              <Button Grid.Column="0" Content="安装 Forge" Command="{Binding InstallForgeCommand}" />
+              <Button Grid.Column="1" Content="安装 NeoForge" Command="{Binding InstallNeoForgeCommand}" />
+            </Grid>
             <Grid ColumnDefinitions="*,*">
               <Button Grid.Column="0" Content="启动" Command="{Binding LaunchCommand}" Margin="0,0,4,0" />
               <Button Grid.Column="1" Content="停止" Command="{Binding StopCommand}" Margin="4,0,0,0" />
