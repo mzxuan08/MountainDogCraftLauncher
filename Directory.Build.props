@@ -8,7 +8,7 @@
     <Deterministic>true</Deterministic>
     <DebugType>portable</DebugType>
     <RestorePackagesWithLockFile>true</RestorePackagesWithLockFile>
-    <Version>0.2.0-alpha.1</Version>
+    <Version>0.2.0-alpha.2</Version>
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
     <Authors>MDCL contributors</Authors>
     <Product>MDCL</Product>

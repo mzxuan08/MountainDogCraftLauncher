@@ -1,6 +1,6 @@
-# MDCL 0.2.0-alpha.1 发布矩阵
+# MDCL 0.2.0-alpha.2 发布矩阵
 
-2026-10-25。开发预览版，未达到全部正式分发验收目标。发布目录 release-manifest.json 和 SHA256SUMS 记录实际提交、文件大小与摘要；历史 0.1.0 包不能替代本版。
+2026-10-25。开发预览版，未达到全部正式分发验收目标。发布目录 release-manifest.json 和 SHA256SUMS 记录实际提交、文件大小与摘要；历史包不能替代本版。首轮远程 Mac CI 因 PowerShell 没有设置 TMPDIR，系统 /var 链接被提取安全检查拒绝；alpha.2 将临时目录统一放入受控 artifacts/work/tmp，保留链接拒绝策略。
 
 | 目标 | 交付 | 运行证据 | 未验证 |
 | --- | --- | --- | --- |
