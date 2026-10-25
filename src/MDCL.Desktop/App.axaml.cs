@@ -20,7 +20,25 @@ public sealed class App : Avalonia.Application
             var viewModel = services.GetRequiredService<MainWindowViewModel>();
             desktop.MainWindow = new MainWindow { DataContext = viewModel };
             desktop.Exit += (_, _) => services.Dispose();
-            _ = viewModel.InitializeAsync();
+            var healthArgs = desktop.Args ?? [];
+            if (healthArgs.Length == 4 && healthArgs[0] == "--health-check" && healthArgs[2] == "--health-nonce")
+            {
+                desktop.MainWindow.ShowInTaskbar = false;
+                desktop.MainWindow.Opacity = 0;
+                desktop.MainWindow.Opened += async (_, _) =>
+                {
+                    try
+                    {
+                        using var timeout = new CancellationTokenSource(TimeSpan.FromSeconds(20));
+                        await services.GetRequiredService<MDCL.Infrastructure.Launcher.LauncherWorkflow>().InitializeAsync(timeout.Token);
+                        await File.WriteAllTextAsync(healthArgs[1], System.Text.Json.JsonSerializer.Serialize(new
+                        { nonce = healthArgs[3], version = MDCL.Core.BuildInfo.Version }), timeout.Token);
+                        desktop.Shutdown(0);
+                    }
+                    catch (Exception) { desktop.Shutdown(1); }
+                };
+            }
+            else _ = viewModel.InitializeAsync();
         }
 
         base.OnFrameworkInitializationCompleted();

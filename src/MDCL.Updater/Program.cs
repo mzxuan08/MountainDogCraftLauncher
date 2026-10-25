@@ -12,6 +12,7 @@ try
         "apply" => await ApplyAsync(options),
         "rollback" => await RollbackAsync(options),
         "verify" => await VerifyAsync(options),
+        "recover" => await RecoverAsync(options),
         _ => Usage()
     };
 }
@@ -32,16 +33,20 @@ static async Task<int> ApplyAsync(Dictionary<string, string> options)
     var envelope = await File.ReadAllTextAsync(Required(options, "envelope"));
     var package = Path.GetFullPath(Required(options, "package"));
     var target = Path.GetFullPath(Required(options, "target"));
+    if (Required(options, "rid") != System.Runtime.InteropServices.RuntimeInformation.RuntimeIdentifier)
+        throw new InvalidOperationException("Update apply must run on the target OS/architecture; cross-build is not runtime verification.");
     using var rsa = RSA.Create();
     rsa.ImportFromPem(await File.ReadAllTextAsync(Required(options, "public-key")));
     var verifier = new UpdateManifestVerifier(rsa, Required(options, "channel"), Required(options, "rid"), Required(options, "current"));
-    var installer = new UpdateInstaller(verifier);
+    var offered = verifier.Verify(envelope, DateTimeOffset.UtcNow);
+    var installer = new UpdateInstaller(verifier, (path, ct) => UpdateHealthProbe.CheckAsync(path, offered.Version, ct));
     var result = await installer.ApplyAsync(envelope, package, target, DateTimeOffset.UtcNow, CancellationToken.None);
     var statePath = Path.Combine(Path.GetDirectoryName(target)!, "mdcl-update-state.json");
     await File.WriteAllTextAsync(statePath, JsonSerializer.Serialize(new
     {
         target,
         backup = result.BackupDirectory,
+        transactionState = result.StatePath,
         manifest = result.Manifest
     }, new JsonSerializerOptions { WriteIndented = true }));
     Console.WriteLine($"applied {result.Manifest.Version}; backup={result.BackupDirectory}; state={statePath}");
@@ -75,6 +80,15 @@ static async Task<int> RollbackAsync(Dictionary<string, string> options)
     return 0;
 }
 
+static async Task<int> RecoverAsync(Dictionary<string, string> options)
+{
+    using var rsa = RSA.Create();
+    var installer = new UpdateInstaller(new UpdateManifestVerifier(rsa, "recovery", "recovery", "0.0.0"));
+    await installer.RecoverAsync(Path.GetFullPath(Required(options, "state")), CancellationToken.None);
+    Console.WriteLine("recovered interrupted update");
+    return 0;
+}
+
 static string Required(Dictionary<string, string> options, string name) =>
     options.TryGetValue(name, out var value) && !string.IsNullOrWhiteSpace(value)
         ? value
@@ -97,5 +111,6 @@ static int Usage()
     Console.Error.WriteLine("MDCL.Updater apply --envelope <json> --package <zip> --target <dir> --public-key <pem> --channel <c> --rid <rid> --current <version> [--wait-pid <pid>] [--wait-timeout <seconds>]");
     Console.Error.WriteLine("MDCL.Updater verify --envelope <json> --public-key <pem> --channel <c> --rid <rid> --current <version>");
     Console.Error.WriteLine("MDCL.Updater rollback --state <mdcl-update-state.json>");
+    Console.Error.WriteLine("MDCL.Updater recover --state <.mdcl-update-state-*.json>");
     return 2;
 }

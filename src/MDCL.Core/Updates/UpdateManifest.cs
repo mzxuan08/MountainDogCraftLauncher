@@ -36,15 +36,18 @@ public static class UpdateSignature
 
 public sealed class SemanticVersion : IComparable<SemanticVersion>
 {
+    private readonly string[] _prerelease;
     public SemanticVersion(string value)
     {
-        var core = value.Split('-', 2)[0].Split('+', 2)[0];
-        var parts = core.Split('.');
-        if (parts.Length < 1 || parts.Length > 4 || parts.Any(x => !int.TryParse(x, out _)))
+        var match = System.Text.RegularExpressions.Regex.Match(value ?? "",
+            @"\A(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)(?:-([0-9A-Za-z-]+(?:\.[0-9A-Za-z-]+)*))?(?:\+[0-9A-Za-z-]+(?:\.[0-9A-Za-z-]+)*)?\z");
+        if (!match.Success || value!.Length > 128 ||
+            !int.TryParse(match.Groups[1].Value, out var major) || !int.TryParse(match.Groups[2].Value, out var minor) || !int.TryParse(match.Groups[3].Value, out var patch))
             throw new FormatException($"Invalid version: {value}");
-        Major = int.Parse(parts[0]);
-        Minor = parts.Length > 1 ? int.Parse(parts[1]) : 0;
-        Patch = parts.Length > 2 ? int.Parse(parts[2]) : 0;
+        Major = major; Minor = minor; Patch = patch;
+        _prerelease = match.Groups[4].Success ? match.Groups[4].Value.Split('.') : [];
+        if (_prerelease.Any(x => x.Length > 1 && x[0] == '0' && x.All(char.IsAsciiDigit)))
+            throw new FormatException("Numeric prerelease identifiers cannot have leading zeroes.");
         Original = value;
     }
 
@@ -59,6 +62,23 @@ public sealed class SemanticVersion : IComparable<SemanticVersion>
         var result = Major.CompareTo(other.Major);
         if (result != 0) return result;
         result = Minor.CompareTo(other.Minor);
-        return result != 0 ? result : Patch.CompareTo(other.Patch);
+        if (result != 0) return result;
+        result = Patch.CompareTo(other.Patch);
+        if (result != 0) return result;
+        if (_prerelease.Length == 0 || other._prerelease.Length == 0)
+            return _prerelease.Length == other._prerelease.Length ? 0 : _prerelease.Length == 0 ? 1 : -1;
+        for (int i = 0; i < Math.Min(_prerelease.Length, other._prerelease.Length); i++)
+        {
+            var left = _prerelease[i]; var right = other._prerelease[i];
+            var leftNumeric = left.All(char.IsAsciiDigit); var rightNumeric = right.All(char.IsAsciiDigit);
+            if (leftNumeric && rightNumeric)
+            {
+                result = left.Length.CompareTo(right.Length);
+                if (result == 0) result = string.CompareOrdinal(left, right);
+            }
+            else result = leftNumeric != rightNumeric ? leftNumeric ? -1 : 1 : string.CompareOrdinal(left, right);
+            if (result != 0) return result;
+        }
+        return _prerelease.Length.CompareTo(other._prerelease.Length);
     }
 }
