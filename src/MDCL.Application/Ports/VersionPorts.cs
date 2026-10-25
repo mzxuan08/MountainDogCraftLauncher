@@ -13,3 +13,8 @@ public interface IVersionResolver
 {
     Task<ResolvedVersion> ResolveAsync(VersionSelection selection, TargetPlatform target, CancellationToken ct);
 }
+
+public interface IAssetIndexSource
+{
+    Task<IReadOnlyList<AssetObject>> GetObjectsAsync(ResolvedAssetIndex index, CancellationToken ct);
+}

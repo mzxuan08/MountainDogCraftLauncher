@@ -6,7 +6,7 @@ using MDCL.Core.Versions;
 
 namespace MDCL.Infrastructure.Metadata;
 
-public sealed class MojangMetadataProvider : IVersionMetadataSource
+public sealed class MojangMetadataProvider : IVersionMetadataSource, IAssetIndexSource
 {
     public static readonly Uri VersionManifestUri = new("https://piston-meta.mojang.com/mc/game/version_manifest_v2.json");
     private const long MaximumMetadataBytes = 16 * 1024 * 1024;
@@ -54,6 +54,31 @@ public sealed class MojangMetadataProvider : IVersionMetadataSource
         if (!string.Equals(document.Id, entry.Id, StringComparison.Ordinal))
             throw new MdclException(MdclError.Of("VERSION_ID_MISMATCH", "Metadata", $"请求 {entry.Id}，响应 {document.Id}。", false));
         return new VersionMetadataRecord(document, entry.Url, actualSha1);
+    }
+
+    public async Task<IReadOnlyList<AssetObject>> GetObjectsAsync(ResolvedAssetIndex index, CancellationToken ct)
+    {
+        if (index.Uri is null) throw new MdclException(MdclError.Of("ASSET_INDEX_URL_MISSING", "Metadata", "版本没有可用 assets 索引地址。", false));
+        var safeName = Convert.ToHexString(SHA256.HashData(Encoding.UTF8.GetBytes(index.Id))).ToLowerInvariant();
+        var cache = Path.Combine(_cacheDirectory, "assets", $"{safeName}.json");
+        var bytes = await ReadWithCacheAsync(index.Uri, cache, index.Sha1, ct);
+        using var document = System.Text.Json.JsonDocument.Parse(bytes);
+        var root = document.RootElement;
+        var id = root.TryGetProperty("id", out var idNode) ? idNode.GetString() : index.Id;
+        if (!string.Equals(id, index.Id, StringComparison.Ordinal))
+            throw new MdclException(MdclError.Of("ASSET_INDEX_ID_MISMATCH", "Metadata", $"assets 索引 ID 不匹配：{id}。", false));
+        var result = new List<AssetObject>();
+        if (root.TryGetProperty("objects", out var objects))
+        {
+            foreach (var property in objects.EnumerateObject())
+            {
+                if (!property.Value.TryGetProperty("hash", out var hash) || !property.Value.TryGetProperty("size", out var size)) continue;
+                var hashText = hash.GetString();
+                if (string.IsNullOrWhiteSpace(hashText) || hashText.Length != 40 || !size.TryGetInt64(out var sizeValue)) continue;
+                result.Add(new AssetObject(hashText.ToLowerInvariant(), sizeValue));
+            }
+        }
+        return result;
     }
 
     private async Task<byte[]> ReadWithCacheAsync(Uri uri, string cachePath, string? expectedSha1, CancellationToken ct)

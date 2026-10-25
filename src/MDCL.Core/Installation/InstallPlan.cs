@@ -27,7 +27,7 @@ public sealed record InstallPlan(
     IReadOnlyList<InstallStep> Steps,
     string TargetSnapshot);
 
-public sealed record InstallRequest(InstanceId InstanceId, string BaseVersion, LoaderDescriptor Loader);
+public sealed record InstallRequest(InstanceId InstanceId, string BaseVersion, LoaderDescriptor Loader, TargetPlatform Target);
 
 public enum OperationState { Created, Planning, Queued, Running, Verifying, Committing, Completed, Canceled, Failed, RecoveryRequired }
 
