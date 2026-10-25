@@ -27,6 +27,7 @@ try {
     if ($LASTEXITCODE -ne 0) { throw 'Build failed.' }
     foreach ($rid in @('win-x64', 'osx-arm64', 'osx-x64')) {
         $output = Join-Path $root "artifacts\$rid"
+        if (Test-Path -LiteralPath $output) { Remove-Item -LiteralPath $output -Recurse -Force }
         & $dotnet publish src/MDCL.Desktop/MDCL.Desktop.csproj -c $Configuration -r $rid --self-contained true --no-restore -o $output
         if ($LASTEXITCODE -ne 0) { throw "Publish failed for $rid." }
     }

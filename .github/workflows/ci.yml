@@ -1,0 +1,32 @@
+name: ci
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  build-test:
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os: windows-latest
+            rid: win-x64
+          - os: macos-14
+            rid: osx-arm64
+          - os: macos-13
+            rid: osx-x64
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '10.0.402'
+      - run: dotnet restore MDCL.sln --locked-mode
+      - run: dotnet build MDCL.sln -c Release --no-restore
+      - run: dotnet test MDCL.sln -c Release --no-build
+      - run: dotnet publish src/MDCL.Desktop/MDCL.Desktop.csproj -c Release -r ${{ matrix.rid }} --self-contained true --no-restore -o artifacts/${{ matrix.rid }}
+      - uses: actions/upload-artifact@v4
+        with:
+          name: MDCL-${{ matrix.rid }}-UNVERIFIED
+          path: artifacts/${{ matrix.rid }}
