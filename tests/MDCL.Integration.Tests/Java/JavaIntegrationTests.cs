@@ -64,7 +64,7 @@ public sealed class JavaIntegrationTests
         using (var stream = File.Create(archive))
         using (var zip = new ZipArchive(stream, ZipArchiveMode.Create))
         {
-            var entry = zip.CreateEntry("jdk/bin/java.exe");
+            var entry = zip.CreateEntry("jdk/bin/" + (OperatingSystem.IsWindows() ? "java.exe" : "java"));
             await using var writer = new StreamWriter(entry.Open());
             await writer.WriteAsync("fake");
         }
