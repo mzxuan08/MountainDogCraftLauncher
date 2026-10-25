@@ -46,9 +46,12 @@ public sealed class ProcessInstallerRunner : IInstallerProcessRunner
             await process.WaitForExitAsync(timeoutSource.Token);
             return new InstallerProcessResult(process.ExitCode, await stdout, await stderr);
         }
-        catch (OperationCanceledException) when (!ct.IsCancellationRequested)
+        catch (OperationCanceledException)
         {
             try { process.Kill(true); } catch (InvalidOperationException) { }
+            await process.WaitForExitAsync(CancellationToken.None);
+            try { await Task.WhenAll(stdout, stderr); } catch (OperationCanceledException) { }
+            ct.ThrowIfCancellationRequested();
             throw new MdclException(MdclError.Of("INSTALLER_TIMEOUT", "Forge", "加载器安装器执行超时。", true));
         }
     }

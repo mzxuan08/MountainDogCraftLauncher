@@ -1,6 +1,14 @@
 using System.Text;
 
 Console.OutputEncoding = new UTF8Encoding(false);
+var pidFileIndex = Array.IndexOf(args, "--pid-file");
+if (pidFileIndex >= 0) await File.WriteAllTextAsync(args[pidFileIndex + 1], Environment.ProcessId.ToString());
+var probePidFile = Environment.GetEnvironmentVariable("MDCL_TEST_PROBE_PID_FILE");
+if (args.Contains("-XshowSettings:properties") && probePidFile is not null)
+{
+    await File.WriteAllTextAsync(probePidFile, Environment.ProcessId.ToString());
+    await Task.Delay(TimeSpan.FromSeconds(30));
+}
 var injected = Environment.GetEnvironmentVariable("JAVA_TOOL_OPTIONS");
 Console.WriteLine("ENV_JAVA_TOOL_OPTIONS=" + (injected ?? "<null>"));
 for (var index = 0; index < args.Length; index++)

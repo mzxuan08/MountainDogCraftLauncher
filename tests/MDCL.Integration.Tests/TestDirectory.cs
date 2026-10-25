@@ -12,6 +12,13 @@ internal sealed class TestDirectory : IDisposable
 
     public void Dispose()
     {
-        try { Directory.Delete(Path, true); } catch (DirectoryNotFoundException) { }
+        // Windows can retain a final file handle briefly after process exit.
+        // Process tests assert ownership/termination before fixture cleanup.
+        for (var attempt = 0; ; attempt++)
+        {
+            try { Directory.Delete(Path, true); break; }
+            catch (DirectoryNotFoundException) { break; }
+            catch (IOException) when (attempt < 20) { Thread.Sleep(25); }
+        }
     }
 }

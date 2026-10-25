@@ -22,8 +22,12 @@ public sealed class ProcessJavaProbe : IJavaProbe
             CreateNoWindow = true,
             RedirectStandardOutput = true,
             RedirectStandardError = true,
+            StandardOutputEncoding = Encoding.UTF8,
+            StandardErrorEncoding = Encoding.UTF8,
             WorkingDirectory = Path.GetDirectoryName(executablePath)!
         };
+        foreach (var property in new[] { "file.encoding", "sun.stdout.encoding", "sun.stderr.encoding", "stdout.encoding", "stderr.encoding" })
+            start.ArgumentList.Add("-D" + property + "=UTF-8");
         start.ArgumentList.Add("-XshowSettings:properties");
         start.ArgumentList.Add("-version");
         using var process = new Process { StartInfo = start };
@@ -63,12 +67,14 @@ public sealed class ProcessJavaProbe : IJavaProbe
             return new JavaProbeResult(new JavaRuntime(id, home, Path.GetFullPath(executablePath), major, vendor,
                 architecture.Value, "ok", DateTimeOffset.UtcNow, false), "ok", null);
         }
-        catch (OperationCanceledException) when (!ct.IsCancellationRequested)
+        catch (OperationCanceledException)
         {
             try { process.Kill(true); } catch (InvalidOperationException) { }
+            await process.WaitForExitAsync(CancellationToken.None);
+            try { await Task.WhenAll(stdout, stderr); } catch (OperationCanceledException) { }
+            ct.ThrowIfCancellationRequested();
             return new JavaProbeResult(null, "timeout", $"探测超过 {_timeout.TotalSeconds:0} 秒");
         }
-        catch (OperationCanceledException) { throw; }
     }
 
     private static Dictionary<string, string> ParseProperties(string text)
