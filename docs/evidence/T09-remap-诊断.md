@@ -72,6 +72,39 @@ at Fabric GameProviderHelper.deobfuscate
 - Fabric Loader 0.16.14 jar 没有注册 `java.nio.file.spi.FileSystemProvider`。
 - 因此已排除：实例路径 ACL/重解析点、同一 JVM 二次打开、Fabric 自带 FileSystemProvider。
 
+## 手工预生成验证成功
+
+用 `tiny-remapper-0.10.4-fat.jar` + 官方 `intermediary-1.20.1-v2` 映射，在独立 shell JVM 中：
+
+```text
+input:  shared/versions/1.20.1/client.jar
+output: client-intermediary.jar
+mappings: official -> intermediary
+```
+
+5 秒完成，生成 24,685,685 字节 jar。放入：
+
+```text
+<instance>/.minecraft/.fabric/remappedJars/minecraft-1.20.1-0.16.14/client-intermediary.jar
+```
+
+Fabric 0.16.14 跳过了内置 remap，真实进入主菜单：
+`Minecraft 1.20.1/Fabric (Modded)`。
+
+证据：`T09-fabric-pre-remap-main-menu.png`、`T09-fabric-pre-remap.log`。
+
+## 自动调用的新差异
+
+把同一 remap 命令放进 MDCL 子进程后，即使：
+
+- 临时输出名缩短为 `rXXXXXXXX.jar`；
+- 输出改到较短的 cache 目录；
+- 不重定向 stdout/stderr；
+
+tiny-remapper 仍报同一个 `can't be written`。而同一台机器、同一 JDK、同一工具在 shell 中可写。说明差异在 MDCL 子进程的 token/环境，而非命令、路径长度或工具本身。
+
+因此没有把自动预生成作为默认启动步骤，避免对正常用户引入额外阻塞。
+
 ## 仍未定位
 
 失败只在 Fabric Loader 的游戏进程内出现。游戏进程与独立探针的差异包括：
