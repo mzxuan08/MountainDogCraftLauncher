@@ -1,0 +1,62 @@
+{
+  "id": "1.20.1",
+  "type": "release",
+  "mainClass": "net.minecraft.client.main.Main",
+  "javaVersion": { "component": "java-runtime-gamma", "majorVersion": 17 },
+  "assets": "5",
+  "assetIndex": {
+    "id": "5",
+    "url": "https://example.invalid/assets/5.json",
+    "sha1": "1111111111111111111111111111111111111111",
+    "size": 100,
+    "totalSize": 1000
+  },
+  "downloads": {
+    "client": {
+      "url": "https://example.invalid/client.jar",
+      "sha1": "2222222222222222222222222222222222222222",
+      "size": 200
+    }
+  },
+  "arguments": {
+    "jvm": [
+      "-Djava.library.path=${natives_directory}",
+      "-cp",
+      "${classpath}"
+    ],
+    "game": [
+      "--username",
+      "${auth_player_name}",
+      "--version",
+      "${version_name}"
+    ]
+  },
+  "libraries": [
+    {
+      "name": "com.example:base:1.0",
+      "downloads": {
+        "artifact": {
+          "path": "com/example/base/1.0/base-1.0.jar",
+          "url": "https://example.invalid/base-1.0.jar",
+          "sha1": "3333333333333333333333333333333333333333",
+          "size": 10
+        }
+      }
+    },
+    {
+      "name": "org.lwjgl:lwjgl:3.3.1",
+      "rules": [
+        { "action": "allow", "os": { "name": "windows" } },
+        { "action": "allow", "os": { "name": "osx" } }
+      ],
+      "downloads": {
+        "artifact": {
+          "path": "org/lwjgl/lwjgl/3.3.1/lwjgl-3.3.1.jar",
+          "url": "https://example.invalid/lwjgl-3.3.1.jar",
+          "sha1": "4444444444444444444444444444444444444444",
+          "size": 20
+        }
+      }
+    }
+  ]
+}

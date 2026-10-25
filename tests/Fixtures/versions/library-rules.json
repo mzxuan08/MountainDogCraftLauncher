@@ -1,0 +1,47 @@
+{
+  "id": "library-rules",
+  "mainClass": "example.Main",
+  "javaVersion": { "majorVersion": 17, "component": "java-runtime-gamma" },
+  "arguments": {
+    "jvm": [
+      "--windows-only",
+      { "rules": [{ "action": "allow", "os": { "name": "windows" } }], "value": "-Dwindows=1" },
+      { "rules": [{ "action": "allow", "os": { "name": "osx" } }], "value": "-Dmac=1" },
+      { "rules": [{ "action": "allow", "features": { "demo": true } }], "value": "--demo" },
+      { "rules": [{ "action": "allow", "os": { "arch": "arm64" } }], "value": "-Darm=1" }
+    ],
+    "game": ["--modern"]
+  },
+  "libraries": [
+    {
+      "name": "com.example:always:1.0",
+      "downloads": { "artifact": { "path": "com/example/always/1.0/always-1.0.jar", "url": "https://example.invalid/always.jar", "sha1": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", "size": 1 } }
+    },
+    {
+      "name": "com.example:windows:1.0",
+      "rules": [{ "action": "allow", "os": { "name": "windows" } }],
+      "downloads": { "artifact": { "path": "com/example/windows/1.0/windows-1.0.jar", "url": "https://example.invalid/windows.jar", "sha1": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb", "size": 2 } }
+    },
+    {
+      "name": "com.example:mac:1.0",
+      "rules": [{ "action": "allow", "os": { "name": "osx" } }],
+      "downloads": { "artifact": { "path": "com/example/mac/1.0/mac-1.0.jar", "url": "https://example.invalid/mac.jar", "sha1": "cccccccccccccccccccccccccccccccccccccccc", "size": 3 } }
+    },
+    {
+      "name": "com.example:arm:1.0",
+      "rules": [{ "action": "allow", "os": { "name": "osx", "arch": "arm64" } }],
+      "downloads": { "artifact": { "path": "com/example/arm/1.0/arm-1.0.jar", "url": "https://example.invalid/arm.jar", "sha1": "dddddddddddddddddddddddddddddddddddddddd", "size": 4 } }
+    },
+    {
+      "name": "org.lwjgl:lwjgl:3.3.1",
+      "natives": { "windows": "natives-windows-${arch}" },
+      "downloads": {
+        "artifact": { "path": "org/lwjgl/lwjgl/3.3.1/lwjgl-3.3.1.jar", "url": "https://example.invalid/lwjgl.jar", "sha1": "eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee", "size": 5 },
+        "classifiers": {
+          "natives-windows-64": { "path": "org/lwjgl/lwjgl/3.3.1/lwjgl-3.3.1-natives-windows-64.jar", "url": "https://example.invalid/lwjgl-natives-x64.jar", "sha1": "ffffffffffffffffffffffffffffffffffffffff", "size": 6 },
+          "natives-windows-arm64": { "path": "org/lwjgl/lwjgl/3.3.1/lwjgl-3.3.1-natives-windows-arm64.jar", "url": "https://example.invalid/lwjgl-natives-arm64.jar", "sha1": "9999999999999999999999999999999999999999", "size": 7 }
+        }
+      }
+    }
+  ]
+}

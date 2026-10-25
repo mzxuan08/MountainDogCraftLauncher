@@ -1,0 +1,22 @@
+{
+  "id": "child-1.20.1",
+  "inheritsFrom": "1.20.1",
+  "type": "release",
+  "arguments": {
+    "jvm": ["-Dchild.property=yes"],
+    "game": ["--child-flag"]
+  },
+  "libraries": [
+    {
+      "name": "com.example:child:2.0",
+      "downloads": {
+        "artifact": {
+          "path": "com/example/child/2.0/child-2.0.jar",
+          "url": "https://example.invalid/child-2.0.jar",
+          "sha1": "5555555555555555555555555555555555555555",
+          "size": 30
+        }
+      }
+    }
+  ]
+}

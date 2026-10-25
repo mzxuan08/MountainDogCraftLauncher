@@ -1,0 +1,6 @@
+{
+  "id": "legacy-1.6.4",
+  "mainClass": "net.minecraft.client.Minecraft",
+  "minecraftArguments": "--username \"${auth_player_name}\" --session ${auth_session} --gameDir ${game_directory} --demo",
+  "libraries": []
+}

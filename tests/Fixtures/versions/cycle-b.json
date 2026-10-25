@@ -1,0 +1,5 @@
+{
+  "id": "cycle-b",
+  "inheritsFrom": "cycle-a",
+  "mainClass": "example.Main"
+}

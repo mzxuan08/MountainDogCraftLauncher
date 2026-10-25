@@ -1,0 +1,8 @@
+{
+  "id": "26.3",
+  "type": "release",
+  "mainClass": "net.minecraft.client.main.Main",
+  "javaVersion": { "component": "java-runtime-epsilon", "majorVersion": 25 },
+  "arguments": { "jvm": [], "game": ["--version", "26.3"] },
+  "libraries": []
+}
