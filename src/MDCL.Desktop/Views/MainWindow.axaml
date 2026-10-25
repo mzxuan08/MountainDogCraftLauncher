@@ -482,6 +482,7 @@
                       </DataTemplate>
                     </ComboBox.ItemTemplate>
                   </ComboBox>
+                  <Button Content="退出 / 移除当前账号" Command="{Binding LogoutCommand}" />
                   <Grid ColumnDefinitions="*,Auto,Auto" ColumnSpacing="8">
                     <TextBox Grid.Column="0" Text="{Binding LocalDisplayName}" PlaceholderText="本地身份名称" />
                     <Button Grid.Column="1" Content="添加本地身份" Command="{Binding AddLocalCommand}" />
@@ -501,6 +502,11 @@
               <StackPanel Spacing="4">
                 <TextBlock Text="运行状态" Classes="cardTitle" />
                 <TextBlock Text="{Binding Status}" Foreground="#8A5A12" TextWrapping="Wrap" />
+                <StackPanel Orientation="Horizontal" Spacing="10">
+                  <Button Content="生成诊断预览" Command="{Binding PreviewDiagnosticsCommand}" />
+                  <Button Content="导出已预览诊断包" Command="{Binding ExportDiagnosticsCommand}" />
+                </StackPanel>
+                <TextBox Text="{Binding DiagnosticPreview}" IsReadOnly="True" AcceptsReturn="True" MaxHeight="160" TextWrapping="Wrap" />
               </StackPanel>
             </Border>
             <Border Grid.Row="1" Background="#0C131A" CornerRadius="14" Padding="12">
@@ -514,6 +520,44 @@
               </ListBox>
             </Border>
           </Grid>
+        </TabItem>
+        <TabItem Header="设置">
+          <ScrollViewer>
+            <StackPanel Spacing="14" Margin="0,4,4,4">
+              <Border Classes="card">
+                <StackPanel Spacing="10">
+                  <TextBlock Text="当前实例设置" Classes="cardTitle" />
+                  <TextBlock Text="实例名称" />
+                  <TextBox Text="{Binding EditInstanceName}" />
+                  <TextBlock Text="内存（MiB）" />
+                  <NumericUpDown Value="{Binding EditMemoryMiB}" Minimum="512" Maximum="131072" Increment="512" />
+                  <TextBlock Text="Java 选择" />
+                  <ComboBox ItemsSource="{Binding JavaRuntimes}" SelectedItem="{Binding SelectedJavaRuntime}" HorizontalAlignment="Stretch">
+                    <ComboBox.ItemTemplate><DataTemplate x:DataType="vm:JavaRuntimeRow"><TextBlock Text="{Binding Display}" /></DataTemplate></ComboBox.ItemTemplate>
+                  </ComboBox>
+                  <StackPanel Orientation="Horizontal" Spacing="10">
+                    <Button Content="重新发现 Java" Command="{Binding RefreshJavaCommand}" />
+                    <Button Classes="accent" Content="保存实例设置" Command="{Binding SaveInstanceSettingsCommand}" />
+                  </StackPanel>
+                  <TextBlock Text="手动绑定失效时会显示错误；选择自动并保存后，恢复按版本和架构选择。" TextWrapping="Wrap" Classes="muted" />
+                </StackPanel>
+              </Border>
+              <Border Classes="card">
+                <StackPanel Spacing="10">
+                  <TextBlock Text="复制与回收" Classes="cardTitle" />
+                  <TextBox Text="{Binding CopyInstanceName}" PlaceholderText="副本名称" />
+                  <Button Content="复制当前实例" Command="{Binding CopyInstanceCommand}" />
+                  <TextBlock Text="当前实例及其目录将移入 MDCL 回收区，共享下载库保留。可在下方恢复；运行中的实例不能移动。" TextWrapping="Wrap" />
+                  <CheckBox Content="确认将左侧当前实例移入回收区" IsChecked="{Binding ConfirmTrash}" />
+                  <Button Content="移入回收区" Command="{Binding TrashInstanceCommand}" />
+                  <ComboBox ItemsSource="{Binding TrashInstances}" SelectedItem="{Binding SelectedTrashInstance}" HorizontalAlignment="Stretch">
+                    <ComboBox.ItemTemplate><DataTemplate x:DataType="vm:InstanceRow"><TextBlock Text="{Binding Manifest.DisplayName}" /></DataTemplate></ComboBox.ItemTemplate>
+                  </ComboBox>
+                  <Button Content="恢复选中的实例" Command="{Binding RestoreInstanceCommand}" />
+                </StackPanel>
+              </Border>
+            </StackPanel>
+          </ScrollViewer>
         </TabItem>
       </TabControl>
     </Grid>

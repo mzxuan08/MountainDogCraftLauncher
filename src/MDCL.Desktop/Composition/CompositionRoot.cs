@@ -40,6 +40,8 @@ public static class CompositionRoot
         services.AddSingleton<IInstanceRepository>(new FileInstanceRepository(paths.InstancesRoot));
         services.AddSingleton<IInstanceIndex>(sp => new SqliteInstanceIndex(paths.DatabasePath, sp.GetRequiredService<IInstanceRepository>()));
         services.AddSingleton<IInstanceLeaseManager>(new FileInstanceLeaseManager(paths.InstancesRoot));
+        services.AddSingleton<InstanceLifecycleService>();
+        services.AddSingleton<MDCL.Infrastructure.Diagnostics.DiagnosticArchiveService>();
         var metadata = new MojangMetadataProvider(http, Path.Combine(paths.CacheRoot, "metadata"));
         services.AddSingleton<IVersionMetadataSource>(metadata);
         services.AddSingleton<IAssetIndexSource>(metadata);

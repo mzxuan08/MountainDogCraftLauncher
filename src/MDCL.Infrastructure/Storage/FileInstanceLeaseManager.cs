@@ -13,9 +13,10 @@ public sealed class FileInstanceLeaseManager : IInstanceLeaseManager
     public Task<IInstanceLease> AcquireAsync(InstanceId id, string ownerId, CancellationToken ct)
     {
         ct.ThrowIfCancellationRequested();
-        var directory = Path.Combine(_instancesRoot, id.ToString());
+        // Stable lock identity must survive moving an instance into/out of trash.
+        var directory = Path.Combine(_instancesRoot, ".leases");
         Directory.CreateDirectory(directory);
-        var path = Path.Combine(directory, ".mdcl.lock");
+        var path = Path.Combine(directory, id.ToString() + ".lock");
         try
         {
             var stream = new FileStream(path, FileMode.OpenOrCreate, FileAccess.ReadWrite, FileShare.None, 4096, FileOptions.Asynchronous | FileOptions.DeleteOnClose);

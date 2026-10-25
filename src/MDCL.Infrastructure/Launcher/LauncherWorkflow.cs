@@ -76,6 +76,7 @@ public sealed class LauncherWorkflow
     public TargetPlatform Target { get; }
     public IAccountService Accounts => _accounts;
     public IAppPaths Paths => _paths;
+    public Task<IReadOnlyList<JavaProbeResult>> DiscoverJavaAsync(CancellationToken ct) => _javaDiscovery.DiscoverAsync(ct);
 
     public async Task InitializeAsync(CancellationToken ct)
     {
@@ -218,6 +219,7 @@ public sealed class LauncherWorkflow
     {
         var manifest = await _repository.LoadAsync(instanceId, ct);
         var lease = await _leases.AcquireAsync(instanceId, "launch", ct);
+        string? sessionDirectory = null;
         try
         {
             var instanceDirectory = Path.Combine(_paths.InstancesRoot, instanceId.ToString());
@@ -225,7 +227,7 @@ public sealed class LauncherWorkflow
                 throw new MdclException(MdclError.Of("MRPACK_IMPORT_INCOMPLETE", "Launch", "整合包尚未导入完成，请用同一包重新导入以恢复。", true));
             var resolved = await _resolvedStore.LoadAsync(instanceDirectory, ct);
             var java = await EnsureJavaAsync(manifest, resolved, ct);
-            var sessionDirectory = Path.Combine(_paths.DataRoot, "sessions", Guid.NewGuid().ToString("N"));
+            sessionDirectory = Path.Combine(_paths.DataRoot, "sessions", Guid.NewGuid().ToString("N"));
             var natives = Path.Combine(sessionDirectory, "natives");
             await _natives.ExtractAsync(resolved.NativeLibraries
                 .Where(x => x.Native is not null)
@@ -234,17 +236,18 @@ public sealed class LauncherWorkflow
                 instanceDirectory, natives, Target);
             var account = await _accounts.GetSessionAsync(accountId, false, ct);
             var session = await _processes.StartAsync(plan, account, ct);
-            _ = ReleaseWhenExitAsync(session, lease);
+            _ = ReleaseWhenExitAsync(session, lease, sessionDirectory);
             return new LaunchOutcome(session, java);
         }
         catch
         {
+            CleanupSessionDirectory(sessionDirectory);
             await lease.DisposeAsync();
             throw;
         }
     }
 
-    private async Task ReleaseWhenExitAsync(IGameSession session, IInstanceLease lease)
+    private async Task ReleaseWhenExitAsync(IGameSession session, IInstanceLease lease, string sessionDirectory)
     {
         try
         {
@@ -266,6 +269,15 @@ public sealed class LauncherWorkflow
             await File.WriteAllTextAsync(Path.Combine(directory, session.SessionId.ToString("N") + ".json"),
                 System.Text.Json.JsonSerializer.Serialize(record, new System.Text.Json.JsonSerializerOptions { WriteIndented = true }));
         }
-        finally { await lease.DisposeAsync(); }
+        catch (IOException) { }
+        finally { CleanupSessionDirectory(sessionDirectory); await lease.DisposeAsync(); }
+    }
+
+    private void CleanupSessionDirectory(string? directory)
+    {
+        if(directory is null) return;
+        var full=Path.GetFullPath(directory);
+        if(Path.GetDirectoryName(full)!=Path.Combine(_paths.DataRoot,"sessions") || !Guid.TryParseExact(Path.GetFileName(full),"N",out _)) return;
+        try { if(Directory.Exists(full)) Directory.Delete(full,true); } catch(IOException) { }
     }
 }

@@ -11,6 +11,7 @@ using MDCL.Infrastructure.Launcher;
 using MDCL.Infrastructure.Metadata;
 using MDCL.Infrastructure.Mods;
 using MDCL.Infrastructure.Diagnostics;
+using MDCL.Infrastructure.Storage;
 
 namespace MDCL.Desktop.ViewModels;
 
@@ -43,6 +44,8 @@ public sealed record AccountRow(AccountProfile Profile)
     public AccountId Id => Profile.Id;
 }
 
+public sealed record JavaRuntimeRow(string? RuntimeId, string Display);
+
 public sealed partial class MainWindowViewModel : ObservableObject
 {
     private readonly LauncherWorkflow _workflow;
@@ -50,6 +53,8 @@ public sealed partial class MainWindowViewModel : ObservableObject
     private readonly ModrinthInstallService _modrinthInstaller;
     private readonly LocalModService _mods;
     private readonly MrpackImportService _mrpackImport;
+    private readonly InstanceLifecycleService _lifecycle;
+    private readonly DiagnosticArchiveService _diagnostics;
     private IGameSession? _session;
     private DateTimeOffset _lastProgress = DateTimeOffset.MinValue;
     private bool _initialized;
@@ -77,15 +82,24 @@ public sealed partial class MainWindowViewModel : ObservableObject
     [ObservableProperty] private string _mrpackInstanceName = "导入的整合包";
     [ObservableProperty] private string _mrpackPreviewText = "请先预览，确认版本、来源和限制后导入。";
     [ObservableProperty] private int _selectedTabIndex;
+    [ObservableProperty] private string _editInstanceName = "";
+    [ObservableProperty] private int _editMemoryMiB = 4096;
+    [ObservableProperty] private string _copyInstanceName = "";
+    [ObservableProperty] private bool _confirmTrash;
+    [ObservableProperty] private InstanceRow? _selectedTrashInstance;
+    [ObservableProperty] private JavaRuntimeRow? _selectedJavaRuntime;
+    [ObservableProperty] private string _diagnosticPreview = "";
 
     public MainWindowViewModel(LauncherWorkflow workflow, ModrinthProvider modrinth,
-        ModrinthInstallService modrinthInstaller, LocalModService mods, MrpackImportService mrpackImport)
+        ModrinthInstallService modrinthInstaller, LocalModService mods, MrpackImportService mrpackImport, InstanceLifecycleService lifecycle, DiagnosticArchiveService diagnostics)
     {
         _workflow = workflow;
         _modrinth = modrinth;
         _modrinthInstaller = modrinthInstaller;
         _mods = mods;
         _mrpackImport = mrpackImport;
+        _lifecycle = lifecycle;
+        _diagnostics = diagnostics;
     }
 
     public string Title => "MDCL";
@@ -98,6 +112,8 @@ public sealed partial class MainWindowViewModel : ObservableObject
     public ObservableCollection<string> Logs { get; } = [];
     public ObservableCollection<ModrinthProjectRow> ModrinthProjects { get; } = [];
     public ObservableCollection<LocalModRow> LocalMods { get; } = [];
+    public ObservableCollection<InstanceRow> TrashInstances { get; } = [];
+    public ObservableCollection<JavaRuntimeRow> JavaRuntimes { get; } = [new(null, "自动选择兼容 Java")];
 
     public async Task InitializeAsync()
     {
@@ -129,6 +145,63 @@ public sealed partial class MainWindowViewModel : ObservableObject
         foreach (var account in await _workflow.Accounts.ListAsync(ct)) Accounts.Add(new AccountRow(account));
         SelectedInstance = Instances.FirstOrDefault(x => x.Id == selectedId) ?? Instances.FirstOrDefault();
         SelectedAccount = Accounts.FirstOrDefault(x => x.Id == selectedAccountId) ?? Accounts.FirstOrDefault();
+        TrashInstances.Clear();
+        foreach(var instance in await _lifecycle.ListTrashAsync(ct)) TrashInstances.Add(new InstanceRow(instance));
+        SelectedTrashInstance = TrashInstances.FirstOrDefault();
+    }
+
+    [RelayCommand(CanExecute = nameof(CanInstall))]
+    private Task SaveInstanceSettingsAsync() => RunAsync(async ct =>
+    {
+        var id = SelectedInstance!.Id;
+        await _lifecycle.UpdateSettingsAsync(id,EditInstanceName,EditMemoryMiB,SelectedJavaRuntime?.RuntimeId,ct);
+        await RefreshCoreAsync(ct);
+        SelectedInstance=Instances.First(x=>x.Id==id);
+        Status="实例名称、内存和 Java 策略已保存。";
+    });
+
+    [RelayCommand(CanExecute = nameof(CanInstall))]
+    private Task CopyInstanceAsync() => RunAsync(async ct =>
+    {
+        var copied=await _lifecycle.CopyAsync(SelectedInstance!.Id,CopyInstanceName,ct);
+        await RefreshCoreAsync(ct); SelectedInstance=Instances.First(x=>x.Id==copied.InstanceId);
+        Status="已复制为独立实例；用户文件不会互相改写。";
+    });
+
+    private bool CanTrash() => CanInstall() && ConfirmTrash;
+    [RelayCommand(CanExecute = nameof(CanTrash))]
+    private Task TrashInstanceAsync() => RunAsync(async ct =>
+    {
+        await _lifecycle.MoveToTrashAsync(SelectedInstance!.Id,ct);
+        await RefreshCoreAsync(ct); ConfirmTrash=false;
+        Status="实例已移入 MDCL 回收区，可以恢复。";
+    });
+
+    private bool CanRestore() => !IsBusy && !IsGameRunning && SelectedTrashInstance is not null;
+    [RelayCommand(CanExecute = nameof(CanRestore))]
+    private Task RestoreInstanceAsync() => RunAsync(async ct =>
+    {
+        var id=SelectedTrashInstance!.Id;
+        await _lifecycle.RestoreAsync(id,ct); await RefreshCoreAsync(ct);
+        SelectedInstance=Instances.First(x=>x.Id==id); Status="实例已恢复，原有数据保留。";
+    });
+
+    [RelayCommand(CanExecute = nameof(CanInstall))]
+    private Task RefreshJavaAsync() => RunAsync(async ct =>
+    {
+        var bound=SelectedInstance!.Manifest.JavaPolicy.BoundRuntimeId;
+        var results=await _workflow.DiscoverJavaAsync(ct);
+        JavaRuntimes.Clear(); JavaRuntimes.Add(new(null,"自动选择兼容 Java"));
+        foreach(var runtime in results.Where(x=>x.Runtime is not null).Select(x=>x.Runtime!).DistinctBy(x=>x.RuntimeId))
+            JavaRuntimes.Add(new(runtime.RuntimeId,$"Java {runtime.MajorVersion} / {runtime.Architecture} / {runtime.Vendor}"));
+        SelectBoundJava(bound);
+        Status=$"发现 {results.Count(x=>x.Runtime is not null)} 个可用 Java；探测失败 {results.Count(x=>x.Runtime is null)} 个。";
+    });
+
+    private void SelectBoundJava(string? bound)
+    {
+        if(bound is not null && !JavaRuntimes.Any(x=>x.RuntimeId==bound)) JavaRuntimes.Add(new(bound,"绑定的 Java 尚未发现："+bound));
+        SelectedJavaRuntime=JavaRuntimes.First(x=>x.RuntimeId==bound);
     }
 
     [RelayCommand(CanExecute = nameof(CanCreate))]
@@ -413,6 +486,25 @@ public sealed partial class MainWindowViewModel : ObservableObject
 
     private bool CanLogin() => !IsBusy;
 
+    [RelayCommand]
+    private void PreviewDiagnostics() => DiagnosticPreview=_diagnostics.CreatePreview(Logs);
+    private bool CanExportDiagnostics() => !IsBusy && !string.IsNullOrWhiteSpace(DiagnosticPreview);
+    [RelayCommand(CanExecute = nameof(CanExportDiagnostics))]
+    private Task ExportDiagnosticsAsync() => RunAsync(async ct =>
+    {
+        var file=await _diagnostics.ExportAsync(DiagnosticPreview,ct);
+        Status="诊断包已保存："+file;
+    });
+
+    private bool CanLogout() => !IsBusy && SelectedAccount is not null;
+    [RelayCommand(CanExecute = nameof(CanLogout))]
+    private Task LogoutAsync() => RunAsync(async ct =>
+    {
+        await _workflow.Accounts.LogoutAsync(SelectedAccount!.Id,ct);
+        await RefreshCoreAsync(ct);
+        Status="账号已退出，持久凭据已删除；已启动的游戏继续运行。";
+    });
+
     private async Task RunAsync(Func<CancellationToken, Task> action, CancellationToken cancellationToken = default)
     {
         if (IsBusy) return;
@@ -487,6 +579,13 @@ public sealed partial class MainWindowViewModel : ObservableObject
         ImportMrpackCommand.NotifyCanExecuteChanged();
         PreviewMrpackCommand.NotifyCanExecuteChanged();
         CancelCommand.NotifyCanExecuteChanged();
+        SaveInstanceSettingsCommand.NotifyCanExecuteChanged();
+        CopyInstanceCommand.NotifyCanExecuteChanged();
+        TrashInstanceCommand.NotifyCanExecuteChanged();
+        RestoreInstanceCommand.NotifyCanExecuteChanged();
+        RefreshJavaCommand.NotifyCanExecuteChanged();
+        LogoutCommand.NotifyCanExecuteChanged();
+        ExportDiagnosticsCommand.NotifyCanExecuteChanged();
     }
 
     partial void OnIsBusyChanged(bool value) => NotifyCommands();
@@ -497,9 +596,17 @@ public sealed partial class MainWindowViewModel : ObservableObject
     }
     partial void OnSelectedInstanceChanged(InstanceRow? value)
     {
+        EditInstanceName=value?.Manifest.DisplayName??"";
+        EditMemoryMiB=value?.Manifest.MemoryMiB??4096;
+        CopyInstanceName=value is null?"":value.Manifest.DisplayName+" 副本";
+        ConfirmTrash=false;
+        SelectBoundJava(value?.Manifest.JavaPolicy.BoundRuntimeId);
         NotifyCommands();
         _ = RefreshSelectionModsAsync();
     }
+    partial void OnConfirmTrashChanged(bool value) => TrashInstanceCommand.NotifyCanExecuteChanged();
+    partial void OnSelectedTrashInstanceChanged(InstanceRow? value) => RestoreInstanceCommand.NotifyCanExecuteChanged();
+    partial void OnDiagnosticPreviewChanged(string value) => ExportDiagnosticsCommand.NotifyCanExecuteChanged();
 
     partial void OnSelectedLocalModChanged(LocalModRow? value) => ToggleModCommand.NotifyCanExecuteChanged();
     partial void OnSelectedAccountChanged(AccountRow? value) => NotifyCommands();

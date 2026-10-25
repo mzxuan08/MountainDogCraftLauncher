@@ -88,7 +88,7 @@ public sealed class WorkflowInteractionTests
             var workflow = new LauncherWorkflow(Get<IAppPaths>(), Get<IInstanceRepository>(), Get<IInstanceIndex>(), Get<IInstanceLeaseManager>(),
                 Resolver, Get<IVersionMetadataSource>(), Get<IInstallPlanner>(), Get<IOperationCoordinator>(),
                 Get<IJavaDiscovery>(), Get<IJavaSelector>(), Get<IJavaRuntimeInstaller>(), Get<IAccountService>(), Get<IGameProcessService>(), Get<ForgeInstallerService>());
-            ViewModel = new MainWindowViewModel(workflow, Get<ModrinthProvider>(), Get<ModrinthInstallService>(), Get<LocalModService>(), Get<MrpackImportService>());
+            ViewModel = new MainWindowViewModel(workflow, Get<ModrinthProvider>(), Get<ModrinthInstallService>(), Get<LocalModService>(), Get<MrpackImportService>(), Get<MDCL.Infrastructure.Storage.InstanceLifecycleService>(), Get<MDCL.Infrastructure.Diagnostics.DiagnosticArchiveService>());
         }
         private T Get<T>() where T : notnull => _services.GetRequiredService<T>();
         public void Dispose()
