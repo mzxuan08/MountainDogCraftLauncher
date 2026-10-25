@@ -28,6 +28,8 @@ public sealed class ForgeInstallerServiceTests
         Assert.Equal("java.exe", runner.Executable);
         Assert.Equal(["-jar", Path.Combine(result.StagingDirectory, "installer.jar"), "--installClient", result.StagingDirectory], runner.Arguments);
         Assert.Equal(0, result.Process.ExitCode);
+        Assert.True(File.Exists(Path.Combine(result.StagingDirectory, "launcher_profiles.json")));
+        Assert.True(File.Exists(Path.Combine(result.StagingDirectory, "versions", game, game + ".json")));
     }
 
     [Fact]

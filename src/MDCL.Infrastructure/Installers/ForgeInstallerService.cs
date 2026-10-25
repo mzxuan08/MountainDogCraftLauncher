@@ -59,12 +59,14 @@ public sealed class ForgeInstallerService
     private readonly HttpClient _http;
     private readonly IArtifactDownloader _downloader;
     private readonly IInstallerProcessRunner _runner;
+    private readonly IAppPaths? _paths;
 
-    public ForgeInstallerService(HttpClient http, IArtifactDownloader downloader, IInstallerProcessRunner runner)
+    public ForgeInstallerService(HttpClient http, IArtifactDownloader downloader, IInstallerProcessRunner runner, IAppPaths? paths = null)
     {
         _http = http;
         _downloader = downloader;
         _runner = runner;
+        _paths = paths;
     }
 
     public async Task<ForgeInstallResult> InstallAsync(
@@ -89,6 +91,7 @@ public sealed class ForgeInstallerService
             throw new MdclException(MdclError.Of("INSTALLER_HASH_INVALID", "Forge", "安装器 SHA-1 格式无效。", false));
         var stage = Path.Combine(Path.GetFullPath(stagingRoot), "loader-" + Guid.NewGuid().ToString("N"));
         Directory.CreateDirectory(stage);
+        SeedLauncherLayout(stage, request.GameVersion);
         var artifact = new MDCL.Core.Installation.ArtifactSpec(key, [installerUri], null, sha1, "SHA1",
             request.Kind + "-maven-sha1", "installer.jar", MDCL.Core.Installation.ArtifactTrustLevel.TrustedMetadata);
         var receipt = await _downloader.EnsureAsync(artifact, stage, progress, ct);
@@ -98,6 +101,23 @@ public sealed class ForgeInstallerService
             throw new MdclException(MdclError.Of("INSTALLER_FAILED", "Forge",
                 $"加载器安装器失败，退出码 {result.ExitCode}。", false, Tail(result.StandardError)));
         return new ForgeInstallResult(request.Kind, request.LoaderVersion, receipt.Path, stage, result);
+    }
+
+    private void SeedLauncherLayout(string stage, string gameVersion)
+    {
+        Directory.CreateDirectory(stage);
+        File.WriteAllText(Path.Combine(stage, "launcher_profiles.json"),
+            """{"profiles":{},"settings":{"language":"zh_CN"},"version":3}""");
+        var versionDir = Path.Combine(stage, "versions", gameVersion);
+        Directory.CreateDirectory(versionDir);
+        var versionJson = Path.Combine(versionDir, gameVersion + ".json");
+        if (!File.Exists(versionJson))
+            File.WriteAllText(versionJson, $$"""
+                {"id":"{{gameVersion}}","type":"release","mainClass":"net.minecraft.client.main.Main","assets":"5","libraries":[]}
+                """);
+        var clientJar = _paths is null ? null : Path.Combine(_paths.SharedRoot, "versions", gameVersion, "client.jar");
+        var targetJar = Path.Combine(versionDir, gameVersion + ".jar");
+        if (clientJar is not null && File.Exists(clientJar) && !File.Exists(targetJar)) File.Copy(clientJar, targetJar);
     }
 
     private static string Tail(string value) => value.Length <= 1000 ? value.Trim() : value[^1000..].Trim();
