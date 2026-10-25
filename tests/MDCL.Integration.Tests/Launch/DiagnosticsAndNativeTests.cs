@@ -8,6 +8,25 @@ namespace MDCL.Integration.Tests.Launch;
 
 public sealed class DiagnosticsAndNativeTests
 {
+    [Theory]
+    [InlineData("{\"refresh_token\":\"short-refresh\",\"ok\":true}", "short-refresh")]
+    [InlineData("Cookie: session=private-cookie; other=value", "private-cookie")]
+    [InlineData("code_verifier=short-pkce", "short-pkce")]
+    [InlineData("--accessToken short-mc-token", "short-mc-token")]
+    public void Redactor_RemovesShortLabelledSecrets(string text, string secret)
+    {
+        Assert.DoesNotContain(secret, new SensitiveDataRedactor().Redact(text), StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public void LoginResult_ToStringDoesNotExposeRefreshToken()
+    {
+        var profile = new MDCL.Core.Accounts.AccountProfile(MDCL.Core.Accounts.AccountId.New(), "test", MDCL.Core.Accounts.AccountKind.Microsoft, "uuid");
+        var result = new MDCL.Core.Accounts.MicrosoftLoginResult(
+            new MDCL.Core.Accounts.AuthSession(profile, "access-secret", DateTimeOffset.MaxValue), "refresh-secret");
+        Assert.DoesNotContain("refresh-secret", result.ToString(), StringComparison.Ordinal);
+    }
+
     [Fact]
     public void Redactor_RemovesHeadersTokensQueriesAndKnownSecrets()
     {

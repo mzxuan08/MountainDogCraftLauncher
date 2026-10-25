@@ -19,4 +19,7 @@ public enum AuthStage
 
 public sealed record AuthStageEvent(AuthStage Stage, string MessageCode, DateTimeOffset Timestamp);
 
-public sealed record MicrosoftLoginResult(AuthSession Session, string RefreshToken);
+public sealed record MicrosoftLoginResult(AuthSession Session, [property: System.Text.Json.Serialization.JsonIgnore] string RefreshToken)
+{
+    public override string ToString() => "MicrosoftLoginResult { credentials=<redacted> }";
+}
