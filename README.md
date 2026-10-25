@@ -6,11 +6,11 @@
 
 ## 当前实现状态（2026-10-25）
 
-- Windows x64：已通过真实 Mojang 安装、Java 17 启动、`1.20.1` 主菜单、正常退出和二次启动；桌面采用固定实例栏 + 概览/加载器/模组/整合包/账号/日志六个标签页，安装、启动、停止始终可见。
+- Windows x64：已通过真实 Mojang 安装、Java 17 启动、`1.20.1` 主菜单、正常退出和二次启动；桌面采用 PCL 风格主页、固定实例栏与主页/加载器/模组/整合包/账号/日志标签页，安装、启动、停止始终可见。
 - T00—T08 的共享核心和 Windows 闭环已实现，119 项自动化测试通过；三 RID 构建和 Windows zip/macOS `.app` 结构产物已生成。
 - macOS 未在真机运行、未签名/公证；微软真实登录缺少 MDCL public client；`26.3` 未实测。
 - Fabric `0.20.1`/`0.16.14` 可解析和安装，但启动在 tiny-remapper 首次 remap 写 `.tmp` 处失败，F03 未通过。
-- Forge 47.2.0 与 NeoForge 47.1.106 + Minecraft 1.20.1 均已通过真实安装、启动到主菜单并正常退出。mrpack 已用真实最小包完成导入、overrides 合并和原版启动，Modrinth 已完成真实搜索与安装。本地模组管理（含桌面启停）和 Modrinth 搜索/安装、更新清单验签、应用替换/回退核心与独立更新器 CLI 已完成，真实签名发布链未完成。
+- Forge 47.2.0 与 NeoForge 47.1.106 + Minecraft 1.20.1 均已通过真实安装、启动到主菜单并正常退出。mrpack 已用真实原版包与 Forge + Embeddium 包完成导入、overrides 合并和启动，并支持 Vanilla/Fabric/Forge/NeoForge 固定版本；Modrinth 已完成真实搜索与安装。本地模组管理（含桌面启停）和 Modrinth 搜索/安装、更新清单验签、应用替换/回退核心与独立更新器 CLI 已完成，真实签名发布链未完成。
 - 所有未验收事项、证据与限制见 `docs/evidence/T00`—`T12` 和 `release-matrix.md`。不得把构建、安装成功或代码存在写成游戏运行通过。
 - 项目自身 LICENSE 尚未由所有者选定；在选定前不应再分发 MDCL 源码或二进制。第三方组件许可见 `THIRD-PARTY-NOTICES.md`。
 

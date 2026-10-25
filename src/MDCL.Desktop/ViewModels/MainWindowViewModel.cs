@@ -69,6 +69,7 @@ public sealed partial class MainWindowViewModel : ObservableObject
     [ObservableProperty] private LocalModRow? _selectedLocalMod;
     [ObservableProperty] private string _mrpackPath = "";
     [ObservableProperty] private string _mrpackInstanceName = "导入的整合包";
+    [ObservableProperty] private int _selectedTabIndex;
 
     public MainWindowViewModel(LauncherWorkflow workflow, ModrinthProvider modrinth,
         ModrinthInstallService modrinthInstaller, LocalModService mods, MrpackImportService mrpackImport)
@@ -82,6 +83,7 @@ public sealed partial class MainWindowViewModel : ObservableObject
 
     public string Title => "MDCL";
     public string Subtitle => "Minecraft Java Edition · Windows / macOS";
+    public string RunState => IsGameRunning ? "运行中" : "未运行";
     public string[] Navigation { get; } = ["实例", "安装", "账号", "任务", "设置"];
     public ObservableCollection<InstanceRow> Instances { get; } = [];
     public ObservableCollection<AccountRow> Accounts { get; } = [];
@@ -158,6 +160,11 @@ public sealed partial class MainWindowViewModel : ObservableObject
             Status = $"实例“{instance.Manifest.DisplayName}”安装完成。";
         });
     }
+
+    [RelayCommand] private void OpenLoaders() => SelectedTabIndex = 1;
+    [RelayCommand] private void OpenMods() => SelectedTabIndex = 2;
+    [RelayCommand] private void OpenPacks() => SelectedTabIndex = 3;
+    [RelayCommand] private void OpenAccounts() => SelectedTabIndex = 4;
 
     [RelayCommand(CanExecute = nameof(CanImportMrpack))]
     private async Task ImportMrpackAsync()
@@ -416,7 +423,11 @@ public sealed partial class MainWindowViewModel : ObservableObject
     }
 
     partial void OnIsBusyChanged(bool value) => NotifyCommands();
-    partial void OnIsGameRunningChanged(bool value) => NotifyCommands();
+    partial void OnIsGameRunningChanged(bool value)
+    {
+        OnPropertyChanged(nameof(RunState));
+        NotifyCommands();
+    }
     partial void OnSelectedInstanceChanged(InstanceRow? value)
     {
         NotifyCommands();

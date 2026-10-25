@@ -46,6 +46,25 @@ public sealed class MrpackTests
     }
 
     [Theory]
+    [InlineData("forge", "47.2.0", "forge")]
+    [InlineData("neo-forge", "47.1.106", "neoforge")]
+    public async Task LoaderDependencies_MapToInstallerKinds(string dependency, string version, string expected)
+    {
+        using var temp = new TestDirectory();
+        var pack = Path.Combine(temp.Path, "loader.mrpack");
+        using (var stream = File.Create(pack))
+        using (var zip = new ZipArchive(stream, ZipArchiveMode.Create))
+        {
+            var entry = zip.CreateEntry("modrinth.index.json");
+            await using var writer = new StreamWriter(entry.Open(), new UTF8Encoding(false));
+            await writer.WriteAsync($$"""{"formatVersion":1,"game":"minecraft","name":"Loader","versionId":"1.0.0","dependencies":{"minecraft":"1.20.1","{{dependency}}":"{{version}}"},"files":[]}""");
+        }
+        var preview = await new MrpackReader().ReadAsync(pack, CancellationToken.None);
+        Assert.Equal(expected, preview.LoaderKind);
+        Assert.Equal(version, preview.LoaderVersion);
+    }
+
+    [Theory]
     [InlineData("../evil.jar")]
     [InlineData("/absolute.jar")]
     [InlineData("mods\\..\\evil.jar")]

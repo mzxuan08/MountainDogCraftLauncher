@@ -25,14 +25,25 @@ public sealed class MrpackImportService
         string packPath, string instanceName, IProgress<MDCL.Core.Installation.OperationEvent>? progress, CancellationToken ct)
     {
         var preview = await _reader.ReadAsync(packPath, ct);
-        if (preview.LoaderKind is not ("vanilla" or "fabric"))
+        if (preview.LoaderKind is not ("vanilla" or "fabric" or "forge" or "neoforge"))
             throw new MdclException(MdclError.Of("MRPACK_LOADER_UNSUPPORTED", "Modpack",
                 $"当前不支持自动导入 {preview.LoaderKind} 整合包。", false));
         var instance = await _workflow.CreateInstanceAsync(instanceName, preview.GameVersion, ct);
-        if (preview.LoaderKind == "fabric")
-            await _workflow.InstallFabricAsync(instance.InstanceId, preview.LoaderVersion, progress, ct);
-        else
-            await _workflow.InstallAsync(instance.InstanceId, progress, ct);
+        switch (preview.LoaderKind)
+        {
+            case "fabric":
+                await _workflow.InstallFabricAsync(instance.InstanceId, preview.LoaderVersion, progress, ct);
+                break;
+            case "forge":
+            case "neoforge":
+                await _workflow.InstallAsync(instance.InstanceId, progress, ct);
+                var kind = preview.LoaderKind == "forge" ? LoaderKind.Forge : LoaderKind.NeoForge;
+                await _workflow.InstallForgeAsync(instance.InstanceId, kind, preview.LoaderVersion, progress, ct);
+                break;
+            default:
+                await _workflow.InstallAsync(instance.InstanceId, progress, ct);
+                break;
+        }
 
         instance = (await _workflow.ListInstancesAsync(ct)).First(x => x.InstanceId == instance.InstanceId);
         var gameDirectory = Path.IsPathRooted(instance.GameDirectory)
