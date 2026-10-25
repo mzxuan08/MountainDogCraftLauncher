@@ -16,6 +16,20 @@ namespace MDCL.Desktop.Tests;
 public sealed class WorkflowInteractionTests
 {
     [Fact]
+    public void ImportWithoutReviewedPreview_IsDisabled()
+    {
+        using var context = new Context();
+        var file = Path.Combine(Path.GetTempPath(), Guid.NewGuid().ToString("N") + ".mrpack");
+        File.WriteAllText(file, "unreviewed input");
+        try
+        {
+            context.ViewModel.MrpackPath = file;
+            Assert.False(context.ViewModel.ImportMrpackCommand.CanExecute(null));
+        }
+        finally { File.Delete(file); }
+    }
+
+    [Fact]
     public async Task MissingInstance_DisablesInstallLaunchAndStop()
     {
         using var context = new Context();

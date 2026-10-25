@@ -1,5 +1,6 @@
 using MDCL.Core.Errors;
 using MDCL.Infrastructure.Archives;
+using System.Security.Cryptography;
 
 namespace MDCL.Infrastructure.Installers;
 
@@ -35,8 +36,15 @@ public sealed class MrpackOverrideExtractor
             if (relativeCheck == ".." || relativeCheck.StartsWith(".." + Path.DirectorySeparatorChar, StringComparison.Ordinal))
                 throw new MdclException(MdclError.Of("MRPACK_OVERRIDE_ESCAPE", "Modpack", "overrides 越过实例目录。", false));
             if (File.Exists(destination))
+            {
+                await using var existing = File.OpenRead(destination);
+                await using var expected = File.OpenRead(file);
+                var existingHash = await SHA256.HashDataAsync(existing, ct);
+                var expectedHash = await SHA256.HashDataAsync(expected, ct);
+                if (existingHash.SequenceEqual(expectedHash)) continue;
                 throw new MdclException(MdclError.Of("MRPACK_OVERRIDE_CONFLICT", "Modpack",
                     $"overrides 与现有文件冲突：{relative}", false));
+            }
             Directory.CreateDirectory(Path.GetDirectoryName(destination)!);
             await using var input = File.OpenRead(file);
             await using var output = new FileStream(destination, FileMode.CreateNew, FileAccess.Write, FileShare.None, 81920, FileOptions.Asynchronous);

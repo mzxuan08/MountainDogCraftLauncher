@@ -11,7 +11,8 @@ namespace MDCL.Infrastructure.Installers;
 public sealed record MrpackFile(string RelativePath, Uri DownloadUri, string Sha512, string Sha1, long Size);
 public sealed record MrpackPreview(
     string Name, string VersionId, string GameVersion, string LoaderKind, string LoaderVersion,
-    IReadOnlyList<MrpackFile> Files, int OverrideFileCount, long OverrideBytes, IReadOnlyList<string> Warnings);
+    IReadOnlyList<MrpackFile> Files, int OverrideFileCount, long OverrideBytes, IReadOnlyList<string> Warnings,
+    string ContentSha256 = "", IReadOnlyList<string>? UnsupportedFeatures = null);
 
 public sealed class MrpackReader
 {
@@ -20,7 +21,23 @@ public sealed class MrpackReader
     public async Task<MrpackPreview> ReadAsync(string packPath, CancellationToken ct)
     {
         await using var stream = new FileStream(packPath, FileMode.Open, FileAccess.Read, FileShare.Read);
+        var contentHash = Convert.ToHexString(await SHA256.HashDataAsync(stream, ct)).ToLowerInvariant();
+        stream.Position = 0;
         using var archive = new ZipArchive(stream, ZipArchiveMode.Read);
+        var entryNames = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+        long expanded = 0;
+        if (archive.Entries.Count > 20_000) throw new MdclException(MdclError.Of("ARCHIVE_LIMIT_EXCEEDED", "Modpack", "整合包条目过多。", false));
+        foreach (var entry in archive.Entries)
+        {
+            ct.ThrowIfCancellationRequested();
+            var path = SafeRelative(entry.FullName.TrimEnd('/'));
+            if (!entryNames.Add(path)) throw new MdclException(MdclError.Of("MRPACK_PATH_DUPLICATE", "Modpack", "包内有重复路径。", false));
+            if (((entry.ExternalAttributes >> 16) & 0xF000) == 0xA000)
+                throw new MdclException(MdclError.Of("ARCHIVE_LINK_REJECTED", "Modpack", "包内包含链接。", false));
+            expanded = checked(expanded + entry.Length);
+            if (entry.Length > 2L * 1024 * 1024 * 1024 || expanded > 8L * 1024 * 1024 * 1024)
+                throw new MdclException(MdclError.Of("ARCHIVE_LIMIT_EXCEEDED", "Modpack", "整合包展开大小超限。", false));
+        }
         var indexEntry = archive.GetEntry("modrinth.index.json")
             ?? throw new MdclException(MdclError.Of("MRPACK_INDEX_MISSING", "Modpack", "mrpack 缺少 modrinth.index.json。", false));
         if (indexEntry.Length > MaximumIndexBytes)
@@ -48,11 +65,15 @@ public sealed class MrpackReader
         };
         var loaderVersion = loaderKey?.Value.ValueKind == JsonValueKind.String ? loaderKey.Value.Value.GetString() ?? "" : "";
         var warnings = new List<string>();
+        var unsupported = new List<string>();
+        foreach (var property in root.EnumerateObject())
+            if (property.Name.Contains("script", StringComparison.OrdinalIgnoreCase) || property.Name.Contains("command", StringComparison.OrdinalIgnoreCase))
+                unsupported.Add("不支持执行包内启动脚本/命令：" + property.Name);
         if (loaderKind is "quilt") warnings.Add("Quilt 尚未支持，只能导入文件，不能保证启动。");
         foreach (var property in dependencies.EnumerateObject())
         {
             if (property.Name is not ("minecraft" or "fabric-loader" or "forge" or "neo-forge" or "quilt-loader"))
-                warnings.Add($"未知依赖 {property.Name}，保留为外部输入。");
+                unsupported.Add($"不支持的依赖：{property.Name}。");
         }
 
         var files = new List<MrpackFile>();
@@ -62,16 +83,26 @@ public sealed class MrpackReader
             var path = SafeRelative(file.GetProperty("path").GetString() ?? "");
             if (!seen.Add(path))
                 throw new MdclException(MdclError.Of("MRPACK_PATH_DUPLICATE", "Modpack", $"mrpack 文件路径重复：{path}", false));
+            if (file.TryGetProperty("env", out var env) && env.TryGetProperty("client", out var client))
+            {
+                var support = client.GetString();
+                if (support == "unsupported") { warnings.Add("客户端跳过服务器文件：" + path); continue; }
+                if (support == "optional") warnings.Add("预览中包含客户端可选文件：" + path);
+                else if (support != "required") throw new MdclException(MdclError.Of("MRPACK_ENV_INVALID", "Modpack", "未知客户端环境要求。", false));
+            }
             var hashes = file.GetProperty("hashes");
             var sha512 = hashes.TryGetProperty("sha512", out var s512) ? s512.GetString() ?? "" : "";
             var sha1 = hashes.TryGetProperty("sha1", out var s1) ? s1.GetString() ?? "" : "";
-            if (sha512.Length != 128 && sha1.Length != 40)
+            if ((sha512.Length != 128 || sha512.Any(c => !Uri.IsHexDigit(c))) &&
+                (sha1.Length != 40 || sha1.Any(c => !Uri.IsHexDigit(c))))
                 throw new MdclException(MdclError.Of("MRPACK_HASH_MISSING", "Modpack", $"文件缺少 SHA-512/SHA-1：{path}", false));
             var downloads = file.GetProperty("downloads").EnumerateArray()
                 .Select(x => x.GetString()).Where(x => Uri.TryCreate(x, UriKind.Absolute, out _)).Select(x => new Uri(x!)).ToArray();
             if (downloads.Length == 0 || downloads.Any(x => x.Scheme != Uri.UriSchemeHttps))
                 throw new MdclException(MdclError.Of("MRPACK_DOWNLOAD_INVALID", "Modpack", $"文件没有可信 HTTPS 下载地址：{path}", false));
             var size = file.TryGetProperty("fileSize", out var sizeNode) ? sizeNode.GetInt64() : 0;
+            if (size < 0) throw new MdclException(MdclError.Of("MRPACK_SIZE_INVALID", "Modpack", "文件大小不能为负。", false));
+            if (sha512.Length != 128 || sha512.Any(c => !Uri.IsHexDigit(c))) sha512 = "";
             files.Add(new MrpackFile(path, downloads[0], sha512, sha1, size));
         }
 
@@ -89,7 +120,7 @@ public sealed class MrpackReader
         var name = root.TryGetProperty("name", out var nameNode) ? nameNode.GetString() ?? "导入的整合包" : "导入的整合包";
         var versionId = root.TryGetProperty("versionId", out var versionNode) ? versionNode.GetString() ?? "" : "";
         return new MrpackPreview(name, versionId, gameVersion, loaderKind, loaderVersion,
-            files, (int)overrideFiles, overrideBytes, warnings);
+            files, (int)overrideFiles, overrideBytes, warnings, contentHash, unsupported);
     }
 
     public InstallPlan CreatePlan(MrpackPreview preview, InstanceId instanceId)

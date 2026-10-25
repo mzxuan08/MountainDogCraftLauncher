@@ -25,6 +25,8 @@ public sealed class MrpackOverrideTests
         await new MrpackOverrideExtractor().ExtractAsync(pack, game, Path.Combine(temp.Path, "staging"), CancellationToken.None);
         Assert.Equal("a=1", await File.ReadAllTextAsync(Path.Combine(game, "config", "base.toml")));
         Assert.Equal("b=2", await File.ReadAllTextAsync(Path.Combine(game, "config", "client.toml")));
+        await new MrpackOverrideExtractor().ExtractAsync(pack, game, Path.Combine(temp.Path, "staging"), CancellationToken.None);
+        Assert.Equal("a=1", await File.ReadAllTextAsync(Path.Combine(game, "config", "base.toml")));
     }
 
     [Fact]

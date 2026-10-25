@@ -57,6 +57,7 @@ public sealed partial class MainWindowViewModel : ObservableObject
     private CancellationTokenSource? _operationCancellation;
     private TaskCompletionSource? _operationCompletion;
     private long _modGeneration;
+    private MrpackPreview? _mrpackPreview;
 
     [ObservableProperty] private string _status = "正在初始化…";
     [ObservableProperty] private string _newInstanceName = "我的原版";
@@ -74,6 +75,7 @@ public sealed partial class MainWindowViewModel : ObservableObject
     [ObservableProperty] private LocalModRow? _selectedLocalMod;
     [ObservableProperty] private string _mrpackPath = "";
     [ObservableProperty] private string _mrpackInstanceName = "导入的整合包";
+    [ObservableProperty] private string _mrpackPreviewText = "请先预览，确认版本、来源和限制后导入。";
     [ObservableProperty] private int _selectedTabIndex;
 
     public MainWindowViewModel(LauncherWorkflow workflow, ModrinthProvider modrinth,
@@ -197,7 +199,7 @@ public sealed partial class MainWindowViewModel : ObservableObject
         await RunAsync(async ct =>
         {
             Status = "正在解析并导入 mrpack…";
-            var outcome = await _mrpackImport.ImportAsync(MrpackPath, MrpackInstanceName, null, ct);
+            var outcome = await _mrpackImport.ImportAsync(MrpackPath, MrpackInstanceName, null, ct, _mrpackPreview!.ContentSha256);
             await RefreshCoreAsync(ct);
             SelectedInstance = Instances.FirstOrDefault(x => x.Id == outcome.Instance.InstanceId);
             Status = $"mrpack“{outcome.Preview.Name}”已导入为新实例。";
@@ -205,7 +207,26 @@ public sealed partial class MainWindowViewModel : ObservableObject
     }
 
     private bool CanImportMrpack() => !IsBusy && !string.IsNullOrWhiteSpace(MrpackPath) &&
-        !string.IsNullOrWhiteSpace(MrpackInstanceName) ;
+        !string.IsNullOrWhiteSpace(MrpackInstanceName) && _mrpackPreview is not null &&
+        _mrpackPreview.UnsupportedFeatures is not { Count: > 0 };
+
+    [RelayCommand(CanExecute = nameof(CanPreviewMrpack))]
+    private Task PreviewMrpackAsync() => RunAsync(async ct =>
+    {
+        _mrpackPreview = null;
+        var path = MrpackPath;
+        var preview = await _mrpackImport.PreviewAsync(path, ct);
+        if (path != MrpackPath) return;
+        _mrpackPreview = preview;
+        MrpackPreviewText = $"{preview.Name}\nMinecraft {preview.GameVersion} / {preview.LoaderKind} {preview.LoaderVersion}\n" +
+            $"下载 {preview.Files.Count} 个文件 / {FormatBytes(preview.Files.Sum(x => x.Size))}；覆盖文件 {preview.OverrideFileCount} 个 / {FormatBytes(preview.OverrideBytes)}\n" +
+            "来源：" + string.Join(", ", preview.Files.Select(x => x.DownloadUri.Host).Distinct()) +
+            "\n包 SHA-256：" + preview.ContentSha256 + "\n" +
+            string.Join("\n", preview.Warnings.Concat(preview.UnsupportedFeatures ?? []));
+        Status = preview.UnsupportedFeatures is { Count: > 0 } ? "整合包包含不支持的内容，不能完整导入。" : "预览完成。确认内容后点击导入。";
+    });
+
+    private bool CanPreviewMrpack() => !IsBusy && !string.IsNullOrWhiteSpace(MrpackPath);
 
     [RelayCommand(CanExecute = nameof(CanManageMods))]
     private Task RefreshModsAsync() => RunAsync(ct => RefreshModsCoreAsync(ct));
@@ -464,6 +485,7 @@ public sealed partial class MainWindowViewModel : ObservableObject
         RefreshModsCommand.NotifyCanExecuteChanged();
         ToggleModCommand.NotifyCanExecuteChanged();
         ImportMrpackCommand.NotifyCanExecuteChanged();
+        PreviewMrpackCommand.NotifyCanExecuteChanged();
         CancelCommand.NotifyCanExecuteChanged();
     }
 
@@ -483,7 +505,13 @@ public sealed partial class MainWindowViewModel : ObservableObject
     partial void OnSelectedAccountChanged(AccountRow? value) => NotifyCommands();
     partial void OnSelectedModrinthProjectChanged(ModrinthProjectRow? value) => InstallModrinthCommand.NotifyCanExecuteChanged();
     partial void OnModrinthQueryChanged(string value) => SearchModrinthCommand.NotifyCanExecuteChanged();
-    partial void OnMrpackPathChanged(string value) => ImportMrpackCommand.NotifyCanExecuteChanged();
+    partial void OnMrpackPathChanged(string value)
+    {
+        _mrpackPreview = null;
+        MrpackPreviewText = "文件已变化，请重新预览。";
+        ImportMrpackCommand.NotifyCanExecuteChanged();
+        PreviewMrpackCommand.NotifyCanExecuteChanged();
+    }
     partial void OnMrpackInstanceNameChanged(string value) => ImportMrpackCommand.NotifyCanExecuteChanged();
     partial void OnNewInstanceNameChanged(string value) => CreateCommand.NotifyCanExecuteChanged();
     partial void OnNewVersionChanged(string value) => CreateCommand.NotifyCanExecuteChanged();

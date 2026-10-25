@@ -105,7 +105,8 @@ public sealed class LauncherWorkflow
 
     public async Task<IReadOnlyList<LauncherInstance>> ListInstanceStatusesAsync(CancellationToken ct) =>
         (await ListInstancesAsync(ct)).Select(manifest => new LauncherInstance(manifest,
-            File.Exists(Path.Combine(_paths.InstancesRoot, manifest.InstanceId.ToString(), "resolved-version.json")))).ToArray();
+            File.Exists(Path.Combine(_paths.InstancesRoot, manifest.InstanceId.ToString(), "resolved-version.json")) &&
+            !File.Exists(Path.Combine(_paths.InstancesRoot, manifest.InstanceId.ToString(), MrpackImportService.PendingFileName)))).ToArray();
 
     public async Task<InstanceManifest> CreateInstanceAsync(string displayName, string baseVersion, CancellationToken ct)
     {
@@ -219,6 +220,8 @@ public sealed class LauncherWorkflow
         try
         {
             var instanceDirectory = Path.Combine(_paths.InstancesRoot, instanceId.ToString());
+            if (File.Exists(Path.Combine(instanceDirectory, MrpackImportService.PendingFileName)))
+                throw new MdclException(MdclError.Of("MRPACK_IMPORT_INCOMPLETE", "Launch", "整合包尚未导入完成，请用同一包重新导入以恢复。", true));
             var resolved = await _resolvedStore.LoadAsync(instanceDirectory, ct);
             var java = await EnsureJavaAsync(manifest, resolved, ct);
             var sessionDirectory = Path.Combine(_paths.DataRoot, "sessions", Guid.NewGuid().ToString("N"));

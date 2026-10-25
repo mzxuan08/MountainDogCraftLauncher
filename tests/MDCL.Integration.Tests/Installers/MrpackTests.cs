@@ -10,6 +10,29 @@ namespace MDCL.Integration.Tests.Installers;
 public sealed class MrpackTests
 {
     [Fact]
+    public async Task ClientUnsupportedFile_IsExcludedFromPlan()
+    {
+        using var temp = new TestDirectory();
+        var pack = Path.Combine(temp.Path, "server-only.mrpack");
+        using (var zip = ZipFile.Open(pack, ZipArchiveMode.Create))
+        await using (var writer = new StreamWriter(zip.CreateEntry("modrinth.index.json").Open()))
+            await writer.WriteAsync($$"""{"formatVersion":1,"game":"minecraft","dependencies":{"minecraft":"1.20.1"},"files":[{"path":"mods/server.jar","env":{"client":"unsupported","server":"required"},"hashes":{"sha1":"{{new string('a',40)}}"},"fileSize":1,"downloads":["https://example.invalid/server.jar"]}]}""");
+        var preview = await new MrpackReader().ReadAsync(pack, CancellationToken.None);
+        Assert.Empty(preview.Files);
+        Assert.Empty(new MrpackReader().CreatePlan(preview, InstanceId.New()).Steps.Single().Artifacts);
+    }
+
+    [Fact]
+    public async Task UnsafeOverride_IsRejectedDuringPreview()
+    {
+        using var temp = new TestDirectory();
+        var pack = Path.Combine(temp.Path, "bad-overrides.mrpack");
+        await CreatePack(pack, "mods/safe.jar", "../../escape");
+        var error = await Assert.ThrowsAsync<MdclException>(() => new MrpackReader().ReadAsync(pack, CancellationToken.None));
+        Assert.Equal("MRPACK_PATH_UNSAFE", error.Error.ErrorCode);
+    }
+
+    [Fact]
     public async Task PreviewAndPlan_CaptureComponentsHashesAndOverrides()
     {
         using var temp = new TestDirectory();

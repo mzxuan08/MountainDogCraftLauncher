@@ -453,7 +453,9 @@
                              Classes="muted" TextWrapping="Wrap" />
                   <TextBox Text="{Binding MrpackPath}" PlaceholderText="本地 .mrpack 文件完整路径" />
                   <TextBox Text="{Binding MrpackInstanceName}" PlaceholderText="新实例名称" />
-                  <Button Classes="accent" Content="导入为新实例" Command="{Binding ImportMrpackCommand}" />
+                  <Button Content="预览整合包" Command="{Binding PreviewMrpackCommand}" />
+                  <TextBlock Text="{Binding MrpackPreviewText}" TextWrapping="Wrap" />
+                  <Button Classes="accent" Content="确认导入 / 恢复未完成导入" Command="{Binding ImportMrpackCommand}" />
                 </StackPanel>
               </Border>
               <Border Classes="card">
