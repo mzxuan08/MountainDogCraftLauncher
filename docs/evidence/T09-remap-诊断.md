@@ -65,6 +65,13 @@ at Fabric GameProviderHelper.deobfuscate
 
 证据：`T09-fabric-jdk17.0.20-failure.png`
 
+## 进一步排除路径与重复打开
+
+- 在实际实例路径 `data/instances/.../.fabric/remappedJars/.../client-intermediary.jar.tmp` 直接运行同一 `OutputConsumerPath.Builder(...).assumeArchive(true)`：成功创建 22 字节 ZIP。
+- 在**不删除**同一 `.tmp` 的情况下关闭后重新打开：第二次仍成功，不是“重开变只读”。
+- Fabric Loader 0.16.14 jar 没有注册 `java.nio.file.spi.FileSystemProvider`。
+- 因此已排除：实例路径 ACL/重解析点、同一 JVM 二次打开、Fabric 自带 FileSystemProvider。
+
 ## 仍未定位
 
 失败只在 Fabric Loader 的游戏进程内出现。游戏进程与独立探针的差异包括：

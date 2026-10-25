@@ -23,6 +23,12 @@ catch (Exception ex)
 
 static async Task<int> ApplyAsync(Dictionary<string, string> options)
 {
+    if (options.TryGetValue("wait-pid", out var pidText))
+    {
+        if (!int.TryParse(pidText, out var pid) || pid <= 0) throw new ArgumentException("invalid --wait-pid");
+        var seconds = options.TryGetValue("wait-timeout", out var timeoutText) && int.TryParse(timeoutText, out var parsed) ? parsed : 60;
+        await UpdateProcessGuard.WaitForExitAsync(pid, TimeSpan.FromSeconds(seconds), CancellationToken.None);
+    }
     var envelope = await File.ReadAllTextAsync(Required(options, "envelope"));
     var package = Path.GetFullPath(Required(options, "package"));
     var target = Path.GetFullPath(Required(options, "target"));
@@ -88,7 +94,7 @@ static Dictionary<string, string> Parse(string[] values)
 
 static int Usage()
 {
-    Console.Error.WriteLine("MDCL.Updater apply --envelope <json> --package <zip> --target <dir> --public-key <pem> --channel <c> --rid <rid> --current <version>");
+    Console.Error.WriteLine("MDCL.Updater apply --envelope <json> --package <zip> --target <dir> --public-key <pem> --channel <c> --rid <rid> --current <version> [--wait-pid <pid>] [--wait-timeout <seconds>]");
     Console.Error.WriteLine("MDCL.Updater verify --envelope <json> --public-key <pem> --channel <c> --rid <rid> --current <version>");
     Console.Error.WriteLine("MDCL.Updater rollback --state <mdcl-update-state.json>");
     return 2;
