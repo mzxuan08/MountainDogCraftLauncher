@@ -67,6 +67,19 @@
 
           <Border Background="White" CornerRadius="12" Padding="18">
             <StackPanel Spacing="10">
+              <TextBlock Text="导入 mrpack" FontSize="18" FontWeight="SemiBold" />
+              <Grid ColumnDefinitions="2*,*" ColumnSpacing="8">
+                <TextBox Grid.Column="0" Text="{Binding MrpackPath}" PlaceholderText="本地 .mrpack 文件完整路径" />
+                <TextBox Grid.Column="1" Text="{Binding MrpackInstanceName}" PlaceholderText="新实例名称" />
+              </Grid>
+              <Button Content="导入为新实例" Command="{Binding ImportMrpackCommand}" HorizontalAlignment="Stretch" />
+              <TextBlock Text="导入会创建新实例，不覆盖现有存档；包内脚本不执行。"
+                         Foreground="#68758A" FontSize="12" TextWrapping="Wrap" />
+            </StackPanel>
+          </Border>
+
+          <Border Background="White" CornerRadius="12" Padding="18">
+            <StackPanel Spacing="10">
               <TextBlock Text="本地模组" FontSize="18" FontWeight="SemiBold" />
               <ListBox ItemsSource="{Binding LocalMods}" SelectedItem="{Binding SelectedLocalMod}" Height="140">
                 <ListBox.ItemTemplate>

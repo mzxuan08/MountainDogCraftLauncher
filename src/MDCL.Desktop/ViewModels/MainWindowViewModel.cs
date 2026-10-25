@@ -52,6 +52,7 @@ public sealed partial class MainWindowViewModel : ObservableObject
     private readonly ModrinthProvider _modrinth;
     private readonly ModrinthInstallService _modrinthInstaller;
     private readonly LocalModService _mods;
+    private readonly MrpackImportService _mrpackImport;
     private IGameSession? _session;
     private DateTimeOffset _lastProgress = DateTimeOffset.MinValue;
     private bool _initialized;
@@ -69,14 +70,17 @@ public sealed partial class MainWindowViewModel : ObservableObject
     [ObservableProperty] private string _modrinthQuery = "";
     [ObservableProperty] private ModrinthProjectRow? _selectedModrinthProject;
     [ObservableProperty] private LocalModRow? _selectedLocalMod;
+    [ObservableProperty] private string _mrpackPath = "";
+    [ObservableProperty] private string _mrpackInstanceName = "导入的整合包";
 
     public MainWindowViewModel(LauncherWorkflow workflow, ModrinthProvider modrinth,
-        ModrinthInstallService modrinthInstaller, LocalModService mods)
+        ModrinthInstallService modrinthInstaller, LocalModService mods, MrpackImportService mrpackImport)
     {
         _workflow = workflow;
         _modrinth = modrinth;
         _modrinthInstaller = modrinthInstaller;
         _mods = mods;
+        _mrpackImport = mrpackImport;
     }
 
     public string Title => "MDCL";
@@ -159,6 +163,22 @@ public sealed partial class MainWindowViewModel : ObservableObject
     }
 
     private bool CanInstall() => !IsBusy && SelectedInstance is not null;
+
+    [RelayCommand(CanExecute = nameof(CanImportMrpack))]
+    private async Task ImportMrpackAsync()
+    {
+        await RunAsync(async () =>
+        {
+            Status = "正在解析并导入 mrpack…";
+            var outcome = await _mrpackImport.ImportAsync(MrpackPath, MrpackInstanceName, null, CancellationToken.None);
+            await RefreshCoreAsync();
+            SelectedInstance = Instances.FirstOrDefault(x => x.Id == outcome.Instance.InstanceId);
+            Status = $"mrpack“{outcome.Preview.Name}”已导入为新实例。";
+        });
+    }
+
+    private bool CanImportMrpack() => !IsBusy && !string.IsNullOrWhiteSpace(MrpackPath) &&
+        !string.IsNullOrWhiteSpace(MrpackInstanceName) && File.Exists(MrpackPath);
 
     [RelayCommand(CanExecute = nameof(CanManageMods))]
     private async Task RefreshModsAsync()
@@ -376,6 +396,7 @@ public sealed partial class MainWindowViewModel : ObservableObject
         InstallModrinthCommand.NotifyCanExecuteChanged();
         RefreshModsCommand.NotifyCanExecuteChanged();
         ToggleModCommand.NotifyCanExecuteChanged();
+        ImportMrpackCommand.NotifyCanExecuteChanged();
     }
 
     partial void OnIsBusyChanged(bool value) => NotifyCommands();
@@ -390,6 +411,8 @@ public sealed partial class MainWindowViewModel : ObservableObject
     partial void OnSelectedAccountChanged(AccountRow? value) => NotifyCommands();
     partial void OnSelectedModrinthProjectChanged(ModrinthProjectRow? value) => InstallModrinthCommand.NotifyCanExecuteChanged();
     partial void OnModrinthQueryChanged(string value) => SearchModrinthCommand.NotifyCanExecuteChanged();
+    partial void OnMrpackPathChanged(string value) => ImportMrpackCommand.NotifyCanExecuteChanged();
+    partial void OnMrpackInstanceNameChanged(string value) => ImportMrpackCommand.NotifyCanExecuteChanged();
     partial void OnNewInstanceNameChanged(string value) => CreateCommand.NotifyCanExecuteChanged();
     partial void OnNewVersionChanged(string value) => CreateCommand.NotifyCanExecuteChanged();
     partial void OnLocalDisplayNameChanged(string value) => AddLocalCommand.NotifyCanExecuteChanged();
