@@ -358,7 +358,7 @@ public sealed partial class MainWindowViewModel : ObservableObject
         catch (Exception ex)
         {
             Status = ex.Message;
-            AddLog("错误: " + ex.Message);
+            AddLog("错误: " + ex);
         }
         finally
         {

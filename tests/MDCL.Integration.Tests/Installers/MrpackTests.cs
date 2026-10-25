@@ -27,6 +27,24 @@ public sealed class MrpackTests
         Assert.Equal("SHA512", plan.Steps[0].Artifacts[0].HashAlgorithm);
     }
 
+    [Fact]
+    public async Task VanillaPackWithoutLoader_IsAccepted()
+    {
+        using var temp = new TestDirectory();
+        var pack = Path.Combine(temp.Path, "vanilla.mrpack");
+        using (var stream = File.Create(pack))
+        using (var zip = new ZipArchive(stream, ZipArchiveMode.Create))
+        {
+            var entry = zip.CreateEntry("modrinth.index.json");
+            await using var writer = new StreamWriter(entry.Open(), new UTF8Encoding(false));
+            await writer.WriteAsync("""{"formatVersion":1,"game":"minecraft","name":"Vanilla","versionId":"1.0.0","dependencies":{"minecraft":"1.20.1"},"files":[]}""");
+        }
+        var preview = await new MrpackReader().ReadAsync(pack, CancellationToken.None);
+        Assert.Equal("vanilla", preview.LoaderKind);
+        Assert.Equal("1.20.1", preview.GameVersion);
+        Assert.Empty(preview.Files);
+    }
+
     [Theory]
     [InlineData("../evil.jar")]
     [InlineData("/absolute.jar")]

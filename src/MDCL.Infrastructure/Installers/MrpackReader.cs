@@ -36,8 +36,9 @@ public sealed class MrpackReader
         var gameVersion = dependencies.TryGetProperty("minecraft", out var mc) ? mc.GetString() ?? "" : "";
         if (string.IsNullOrWhiteSpace(gameVersion))
             throw new MdclException(MdclError.Of("MRPACK_GAME_VERSION_MISSING", "Modpack", "mrpack 未声明 Minecraft 版本。", false));
-        var loaderKey = dependencies.EnumerateObject().FirstOrDefault(x => x.Name is "fabric-loader" or "forge" or "neo-forge" or "quilt-loader");
-        var loaderKind = loaderKey.Name switch
+        var loaderKey = dependencies.EnumerateObject().Cast<JsonProperty?>().FirstOrDefault(x =>
+            x?.Name is "fabric-loader" or "forge" or "neo-forge" or "quilt-loader");
+        var loaderKind = loaderKey?.Name switch
         {
             "fabric-loader" => "fabric",
             "forge" => "forge",
@@ -45,7 +46,7 @@ public sealed class MrpackReader
             "quilt-loader" => "quilt",
             _ => "vanilla"
         };
-        var loaderVersion = loaderKey.Value.ValueKind == JsonValueKind.String ? loaderKey.Value.GetString() ?? "" : "";
+        var loaderVersion = loaderKey?.Value.ValueKind == JsonValueKind.String ? loaderKey.Value.Value.GetString() ?? "" : "";
         var warnings = new List<string>();
         if (loaderKind is "quilt") warnings.Add("Quilt 尚未支持，只能导入文件，不能保证启动。");
         foreach (var property in dependencies.EnumerateObject())
