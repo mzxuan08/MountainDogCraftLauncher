@@ -67,6 +67,24 @@
 
           <Border Background="White" CornerRadius="12" Padding="18">
             <StackPanel Spacing="10">
+              <TextBlock Text="Modrinth 模组" FontSize="18" FontWeight="SemiBold" />
+              <Grid ColumnDefinitions="*,Auto" ColumnSpacing="8">
+                <TextBox Grid.Column="0" Text="{Binding ModrinthQuery}" PlaceholderText="搜索模组名称" />
+                <Button Grid.Column="1" Content="搜索" Command="{Binding SearchModrinthCommand}" />
+              </Grid>
+              <ListBox ItemsSource="{Binding ModrinthProjects}" SelectedItem="{Binding SelectedModrinthProject}" Height="150">
+                <ListBox.ItemTemplate>
+                  <DataTemplate x:DataType="vm:ModrinthProjectRow">
+                    <TextBlock Text="{Binding Display}" TextWrapping="Wrap" />
+                  </DataTemplate>
+                </ListBox.ItemTemplate>
+              </ListBox>
+              <Button Content="安装所选模组到当前实例" Command="{Binding InstallModrinthCommand}" HorizontalAlignment="Stretch" />
+            </StackPanel>
+          </Border>
+
+          <Border Background="White" CornerRadius="12" Padding="18">
+            <StackPanel Spacing="10">
               <TextBlock Text="账号" FontSize="18" FontWeight="SemiBold" />
               <ComboBox ItemsSource="{Binding Accounts}" SelectedItem="{Binding SelectedAccount}" HorizontalAlignment="Stretch">
                 <ComboBox.ItemTemplate>

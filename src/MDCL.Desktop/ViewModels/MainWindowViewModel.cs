@@ -6,7 +6,9 @@ using MDCL.Core.Accounts;
 using MDCL.Core.Instances;
 using MDCL.Core.Installation;
 using MDCL.Core.Launch;
+using MDCL.Infrastructure.Installers;
 using MDCL.Infrastructure.Launcher;
+using MDCL.Infrastructure.Metadata;
 
 namespace MDCL.Desktop.ViewModels;
 
@@ -25,6 +27,11 @@ public sealed record InstanceRow(InstanceManifest Manifest, bool IsInstalled = f
     public InstanceId Id => Manifest.InstanceId;
 }
 
+public sealed record ModrinthProjectRow(ModrinthProject Project)
+{
+    public string Display => $"{Project.Title}  ·  {Project.Downloads:N0} 下载";
+}
+
 public sealed record AccountRow(AccountProfile Profile)
 {
     public string Display => $"{Profile.DisplayName}  ·  {(Profile.Kind == AccountKind.Local ? "本地身份" : "微软账号")}";
@@ -34,6 +41,8 @@ public sealed record AccountRow(AccountProfile Profile)
 public sealed partial class MainWindowViewModel : ObservableObject
 {
     private readonly LauncherWorkflow _workflow;
+    private readonly ModrinthProvider _modrinth;
+    private readonly ModrinthInstallService _modrinthInstaller;
     private IGameSession? _session;
     private DateTimeOffset _lastProgress = DateTimeOffset.MinValue;
     private bool _initialized;
@@ -48,8 +57,15 @@ public sealed partial class MainWindowViewModel : ObservableObject
     [ObservableProperty] private string _progressText = "";
     [ObservableProperty] private InstanceRow? _selectedInstance;
     [ObservableProperty] private AccountRow? _selectedAccount;
+    [ObservableProperty] private string _modrinthQuery = "";
+    [ObservableProperty] private ModrinthProjectRow? _selectedModrinthProject;
 
-    public MainWindowViewModel(LauncherWorkflow workflow) => _workflow = workflow;
+    public MainWindowViewModel(LauncherWorkflow workflow, ModrinthProvider modrinth, ModrinthInstallService modrinthInstaller)
+    {
+        _workflow = workflow;
+        _modrinth = modrinth;
+        _modrinthInstaller = modrinthInstaller;
+    }
 
     public string Title => "MDCL";
     public string Subtitle => "Minecraft Java Edition · Windows / macOS";
@@ -57,6 +73,7 @@ public sealed partial class MainWindowViewModel : ObservableObject
     public ObservableCollection<InstanceRow> Instances { get; } = [];
     public ObservableCollection<AccountRow> Accounts { get; } = [];
     public ObservableCollection<string> Logs { get; } = [];
+    public ObservableCollection<ModrinthProjectRow> ModrinthProjects { get; } = [];
 
     public async Task InitializeAsync()
     {
@@ -129,6 +146,51 @@ public sealed partial class MainWindowViewModel : ObservableObject
     }
 
     private bool CanInstall() => !IsBusy && SelectedInstance is not null;
+
+    [RelayCommand(CanExecute = nameof(CanSearchModrinth))]
+    private async Task SearchModrinthAsync()
+    {
+        await RunAsync(async () =>
+        {
+            ModrinthProjects.Clear();
+            SelectedModrinthProject = null;
+            Status = "正在搜索 Modrinth…";
+            var projects = await _modrinth.SearchAsync(ModrinthQuery, 20, CancellationToken.None);
+            foreach (var project in projects) ModrinthProjects.Add(new ModrinthProjectRow(project));
+            Status = ModrinthProjects.Count == 0 ? "Modrinth 没有匹配项目。" : $"找到 {ModrinthProjects.Count} 个 Modrinth 项目。";
+        });
+    }
+
+    private bool CanSearchModrinth() => !IsBusy && !string.IsNullOrWhiteSpace(ModrinthQuery);
+
+    [RelayCommand(CanExecute = nameof(CanInstallModrinth))]
+    private async Task InstallModrinthAsync()
+    {
+        var project = SelectedModrinthProject;
+        var instance = SelectedInstance;
+        if (project is null || instance is null) return;
+        await RunAsync(async () =>
+        {
+            var loader = instance.Manifest.Loader.Kind switch
+            {
+                LoaderKind.Fabric => "fabric",
+                LoaderKind.Forge => "forge",
+                LoaderKind.NeoForge => "neoforge",
+                _ => null
+            };
+            if (loader is null)
+                throw new InvalidOperationException("原版实例没有模组加载器，不能安装 Modrinth 模组。");
+            Status = $"正在读取 {project.Project.Title} 的兼容版本…";
+            var versions = await _modrinth.GetVersionsAsync(project.Project.Id, instance.Manifest.BaseVersion, loader, CancellationToken.None);
+            var version = versions.FirstOrDefault(x => string.Equals(x.VersionType, "release", StringComparison.OrdinalIgnoreCase)) ?? versions.FirstOrDefault();
+            if (version is null) throw new InvalidOperationException("没有匹配当前游戏版本和加载器的文件。");
+            var receipt = await _modrinthInstaller.InstallPrimaryFileAsync(instance.Id, version, null, CancellationToken.None);
+            Status = $"已安装 {project.Project.Title} {version.VersionNumber} 到实例。";
+            AddLog($"Modrinth: {receipt.Path}");
+        });
+    }
+
+    private bool CanInstallModrinth() => !IsBusy && SelectedInstance is not null && SelectedModrinthProject is not null;
 
     [RelayCommand(CanExecute = nameof(CanInstall))]
     private async Task InstallFabricAsync()
@@ -267,12 +329,16 @@ public sealed partial class MainWindowViewModel : ObservableObject
         StopCommand.NotifyCanExecuteChanged();
         AddLocalCommand.NotifyCanExecuteChanged();
         LoginMicrosoftCommand.NotifyCanExecuteChanged();
+        SearchModrinthCommand.NotifyCanExecuteChanged();
+        InstallModrinthCommand.NotifyCanExecuteChanged();
     }
 
     partial void OnIsBusyChanged(bool value) => NotifyCommands();
     partial void OnIsGameRunningChanged(bool value) => NotifyCommands();
     partial void OnSelectedInstanceChanged(InstanceRow? value) => NotifyCommands();
     partial void OnSelectedAccountChanged(AccountRow? value) => NotifyCommands();
+    partial void OnSelectedModrinthProjectChanged(ModrinthProjectRow? value) => InstallModrinthCommand.NotifyCanExecuteChanged();
+    partial void OnModrinthQueryChanged(string value) => SearchModrinthCommand.NotifyCanExecuteChanged();
     partial void OnNewInstanceNameChanged(string value) => CreateCommand.NotifyCanExecuteChanged();
     partial void OnNewVersionChanged(string value) => CreateCommand.NotifyCanExecuteChanged();
     partial void OnLocalDisplayNameChanged(string value) => AddLocalCommand.NotifyCanExecuteChanged();
