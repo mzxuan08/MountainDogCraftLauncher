@@ -1,0 +1,46 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:vm="using:MDCL.Desktop.ViewModels"
+        x:Class="MDCL.Desktop.Views.MainWindow"
+        x:DataType="vm:MainWindowViewModel"
+        Width="960" Height="600" MinWidth="760" MinHeight="480"
+        Title="{Binding Title}">
+  <Grid ColumnDefinitions="220,*" RowDefinitions="Auto,*">
+    <Border Grid.ColumnSpan="2" Background="#171B24" Padding="24,18">
+      <StackPanel Orientation="Horizontal" Spacing="12">
+        <Border Width="34" Height="34" CornerRadius="8" Background="#66C08A">
+          <TextBlock Text="M" Foreground="#102318" FontWeight="Bold" FontSize="20"
+                     HorizontalAlignment="Center" VerticalAlignment="Center" />
+        </Border>
+        <StackPanel VerticalAlignment="Center">
+          <TextBlock Text="{Binding Title}" Foreground="White" FontSize="20" FontWeight="SemiBold" />
+          <TextBlock Text="{Binding Subtitle}" Foreground="#AAB3C2" FontSize="12" />
+        </StackPanel>
+      </StackPanel>
+    </Border>
+    <Border Grid.Row="1" Grid.Column="0" Background="#202632" Padding="16">
+      <ItemsControl ItemsSource="{Binding Navigation}">
+        <ItemsControl.ItemTemplate>
+          <DataTemplate>
+            <Border Background="#2B3443" CornerRadius="6" Padding="14,11" Margin="0,0,0,8">
+              <TextBlock Text="{Binding}" Foreground="#E6EAF0" />
+            </Border>
+          </DataTemplate>
+        </ItemsControl.ItemTemplate>
+      </ItemsControl>
+    </Border>
+    <Grid Grid.Row="1" Grid.Column="1" Background="#F4F6F8">
+      <Border Width="520" Padding="34" Background="White" CornerRadius="12"
+              HorizontalAlignment="Center" VerticalAlignment="Center">
+        <StackPanel Spacing="16">
+          <TextBlock Text="MDCL 开发基线" FontSize="26" FontWeight="SemiBold" Foreground="#1A2330" />
+          <TextBlock Text=".NET 10 LTS · Avalonia · MVVM" FontSize="15" Foreground="#4C596A" />
+          <TextBlock Text="{Binding Status}" TextWrapping="Wrap" FontSize="15" Foreground="#8A4F12" />
+          <Border Height="1" Background="#E4E8ED" />
+          <TextBlock Text="这是 T00 空桌面壳，不是可用启动器。原版安装、账号、Java 和真实启动将按任务书逐项验收。"
+                     TextWrapping="Wrap" LineHeight="24" Foreground="#4C596A" />
+        </StackPanel>
+      </Border>
+    </Grid>
+  </Grid>
+</Window>

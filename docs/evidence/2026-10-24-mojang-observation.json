@@ -1,0 +1,13 @@
+{
+  "observedDate": "2026-10-24",
+  "method": "PowerShell Invoke-RestMethod over HTTPS",
+  "manifestUrl": "https://piston-meta.mojang.com/mc/game/version_manifest_v2.json",
+  "latestReleaseObserved": "26.3",
+  "metadataUrl": "https://piston-meta.mojang.com/v1/packages/61fff1316bd50312624a858bbb5eb18fa45208ed/26.3.json",
+  "javaVersion": {
+    "component": "java-runtime-epsilon",
+    "majorVersion": 25
+  },
+  "mainClass": "net.minecraft.client.main.Main",
+  "scope": "Design research observation only; not a complete install manifest or a permanent latest-version rule."
+}

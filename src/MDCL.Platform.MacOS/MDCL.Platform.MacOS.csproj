@@ -1,0 +1,9 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <RootNamespace>MDCL.Platform.MacOS</RootNamespace>
+  </PropertyGroup>
+  <ItemGroup>
+    <ProjectReference Include="../MDCL.Core/MDCL.Core.csproj" />
+    <ProjectReference Include="../MDCL.Application/MDCL.Application.csproj" />
+  </ItemGroup>
+</Project>

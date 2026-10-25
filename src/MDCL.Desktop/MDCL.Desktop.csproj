@@ -1,0 +1,22 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <OutputType>WinExe</OutputType>
+    <RootNamespace>MDCL.Desktop</RootNamespace>
+    <ApplicationManifest>app.manifest</ApplicationManifest>
+    <AvaloniaUseCompiledBindingsByDefault>true</AvaloniaUseCompiledBindingsByDefault>
+    <RuntimeIdentifiers>win-x64;osx-arm64;osx-x64</RuntimeIdentifiers>
+  </PropertyGroup>
+  <ItemGroup>
+    <ProjectReference Include="../MDCL.Core/MDCL.Core.csproj" />
+    <ProjectReference Include="../MDCL.Application/MDCL.Application.csproj" />
+    <ProjectReference Include="../MDCL.Infrastructure/MDCL.Infrastructure.csproj" />
+    <ProjectReference Include="../MDCL.Platform.Windows/MDCL.Platform.Windows.csproj" />
+    <ProjectReference Include="../MDCL.Platform.MacOS/MDCL.Platform.MacOS.csproj" />
+    <PackageReference Include="Avalonia" />
+    <PackageReference Include="Avalonia.Desktop" />
+    <PackageReference Include="Avalonia.Fonts.Inter" />
+    <PackageReference Include="Avalonia.Themes.Fluent" />
+    <PackageReference Include="CommunityToolkit.Mvvm" />
+    <PackageReference Include="Microsoft.Extensions.DependencyInjection" />
+  </ItemGroup>
+</Project>
