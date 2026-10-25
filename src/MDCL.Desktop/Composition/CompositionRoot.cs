@@ -73,6 +73,7 @@ public static class CompositionRoot
         services.AddSingleton<LauncherWorkflow>();
         services.AddSingleton<MDCL.Infrastructure.Installers.MrpackReader>();
         services.AddSingleton<MDCL.Infrastructure.Installers.MrpackImportService>();
+        services.AddSingleton<ModrinthProvider>();
         services.AddSingleton<MainWindowViewModel>();
         return services.BuildServiceProvider();
     }
