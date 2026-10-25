@@ -1,0 +1,11 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <RootNamespace>MDCL.Updater</RootNamespace>
+    <AssemblyName>MDCL.Updater</AssemblyName>
+  </PropertyGroup>
+  <ItemGroup>
+    <ProjectReference Include="../MDCL.Core/MDCL.Core.csproj" />
+    <ProjectReference Include="../MDCL.Infrastructure/MDCL.Infrastructure.csproj" />
+  </ItemGroup>
+</Project>
