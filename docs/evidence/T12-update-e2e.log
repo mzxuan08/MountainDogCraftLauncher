@@ -1,0 +1,5 @@
+signed 0.2.0 win-x64 stable
+applied 0.2.0; backup=F:\Documents\deepseek-harness\default-workspace\MDCL-架构交接包-2026-10-24\artifacts\update-e2e\.mdcl-update-backup-287fc6a2a9c749f4af106af0020fcca8; state=F:\Documents\deepseek-harness\default-workspace\MDCL-架构交接包-2026-10-24\artifacts\update-e2e\mdcl-update-state.json
+verified: update replaced application directory, old-version marker removed
+rolled back F:\Documents\deepseek-harness\default-workspace\MDCL-架构交接包-2026-10-24\artifacts\update-e2e\app
+verified: rollback restored old-version marker
