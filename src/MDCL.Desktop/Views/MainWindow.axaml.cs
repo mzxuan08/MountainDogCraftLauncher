@@ -1,6 +1,9 @@
 using Avalonia.Controls;
 using Avalonia;
 using MDCL.Desktop.ViewModels;
+using Avalonia.Input;
+using Avalonia.Interactivity;
+using Avalonia.VisualTree;
 
 namespace MDCL.Desktop.Views;
 
@@ -12,6 +15,17 @@ public sealed partial class MainWindow : Window
     {
         InitializeComponent();
         Closing += HandleClosing;
+    }
+
+    private void OnMinimizeClick(object? sender, RoutedEventArgs e) => WindowState = WindowState.Minimized;
+    private void OnCloseClick(object? sender, RoutedEventArgs e) => Close();
+    private void OnTitlePointerPressed(object? sender, PointerPressedEventArgs e)
+    {
+        if (!e.GetCurrentPoint(this).Properties.IsLeftButtonPressed) return;
+        if (e.Source is Control source && (source is Button or ListBox ||
+            source.FindAncestorOfType<Button>() is not null || source.FindAncestorOfType<ListBox>() is not null)) return;
+        if (e.ClickCount == 2) WindowState = WindowState == WindowState.Maximized ? WindowState.Normal : WindowState.Maximized;
+        else BeginMoveDrag(e);
     }
 
     private async void HandleClosing(object? sender, WindowClosingEventArgs e)

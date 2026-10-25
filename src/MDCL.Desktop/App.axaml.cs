@@ -48,11 +48,11 @@ public sealed class App : Avalonia.Application
                         await viewModel.InitializeAsync();
                         var directory = Path.GetFullPath(healthArgs[1]);
                         Directory.CreateDirectory(directory);
-                        foreach (var width in new[] { 1200, 1100 })
+                        foreach (var width in new[] { 960, 850 })
                         {
                             desktop.MainWindow.Width = width;
-                            desktop.MainWindow.Height = width == 1200 ? 800 : 720;
-                            for (var page = 0; page < 7; page++)
+                            desktop.MainWindow.Height = width == 960 ? 640 : 560;
+                            for (var page = 0; page < 10; page++)
                             {
                                 viewModel.SelectedTabIndex = page;
                                 await Task.Delay(200);

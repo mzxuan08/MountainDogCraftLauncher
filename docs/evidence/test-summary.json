@@ -103,9 +103,9 @@
     },
     {
       "counters": {
-        "total": "147",
-        "executed": "147",
-        "passed": "147",
+        "total": "149",
+        "executed": "149",
+        "passed": "149",
         "failed": "0",
         "error": "0",
         "timeout": "0",
@@ -546,6 +546,14 @@
           "outcome": "Passed"
         },
         {
+          "name": "MDCL.Integration.Tests.Storage.InstanceLifecycleTests.Copy_IncompleteInstallRejectedWithoutCreatingLaunchableClone(marker: \".mdcl-import-pending.json\")",
+          "outcome": "Passed"
+        },
+        {
+          "name": "MDCL.Integration.Tests.Storage.InstanceLifecycleTests.Copy_IncompleteInstallRejectedWithoutCreatingLaunchableClone(marker: \".mdcl-install-pending.json\")",
+          "outcome": "Passed"
+        },
+        {
           "name": "MDCL.Integration.Tests.Storage.InstanceLifecycleTests.OwnedInstance_CannotBeMovedWhileRunning",
           "outcome": "Passed"
         },
@@ -713,9 +721,9 @@
     },
     {
       "counters": {
-        "total": "5",
-        "executed": "5",
-        "passed": "5",
+        "total": "8",
+        "executed": "8",
+        "passed": "8",
         "failed": "0",
         "error": "0",
         "timeout": "0",
@@ -733,6 +741,18 @@
       "tests": [
         {
           "name": "MDCL.Desktop.Tests.InstanceRowTests.InstanceRow_ShowsStableVersionAndName",
+          "outcome": "Passed"
+        },
+        {
+          "name": "MDCL.Desktop.Tests.WorkflowInteractionTests.AccountMode_NeverUsesLocalIdentityForMicrosoftMode",
+          "outcome": "Passed"
+        },
+        {
+          "name": "MDCL.Desktop.Tests.WorkflowInteractionTests.EmptyLauncherPrimaryAction_OpensDownloadWithoutStartingProcess",
+          "outcome": "Passed"
+        },
+        {
+          "name": "MDCL.Desktop.Tests.WorkflowInteractionTests.FourSectionNavigation_KeepsExistingFeatureRoutesReachable",
           "outcome": "Passed"
         },
         {
@@ -754,8 +774,8 @@
       ]
     }
   ],
-  "total": 171,
-  "passed": 171,
+  "total": 176,
+  "passed": 176,
   "failed": 0,
   "packagingTests": {
     "passed": 2,

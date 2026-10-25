@@ -4,7 +4,7 @@
 
 | 目标 | 交付 | 运行证据 | 未验证 |
 | --- | --- | --- | --- |
-| win-x64 | 自包含 ZIP，桌面与独立 updater | 本机 .NET 10.0.402 编译/测试；原版 1.20.1 和 26.3 各两次主菜单、正常退出；蓝白 UI 七页、两种窗口尺寸导出 | 干净 Windows 用户环境、正式签名、完整性能指标 |
+| win-x64 | 自包含 ZIP，桌面与独立 updater | 本机 .NET 10.0.402 编译/测试；原版 1.20.1 和 26.3 各两次主菜单、正常退出；PCL 高仿布局十页、两种窗口尺寸导出 | 干净 Windows 用户环境、正式签名、完整性能指标 |
 | osx-arm64 | 自包含未签名 `.app.tar.gz`，含执行位 | Windows 交叉发布；Mach-O arm64 头及 bundle 结构检查 | Apple Silicon 真机、窗口、Java、Keychain、游戏、Gatekeeper、公证 |
 | osx-x64 | 自包含未签名 `.app.tar.gz`，含执行位 | Windows 交叉发布；Mach-O x64 头及 bundle 结构检查 | Intel Mac 真机、窗口、Java、Keychain、游戏、Gatekeeper、公证 |
 

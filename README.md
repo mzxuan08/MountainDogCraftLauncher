@@ -2,9 +2,9 @@
 
 Minecraft Java 版桌面启动器，采用 C# / .NET 10、Avalonia 和 MVVM，发布 `win-x64`、`osx-arm64`、`osx-x64`。源码采用 MIT 许可证；第三方许可独立保留。
 
-![MDCL 启动页](docs/evidence/ui-pcl/desktop-1200-page-0.png)
+![MDCL 启动页](docs/evidence/ui-pcl/desktop-960-page-0.png)
 
-界面采用 PCL 经典蓝白风格：顶部功能导航，左侧账号、实例和启动区，右侧管理页面。布局和图标由 MDCL 实现，未复制 PCL 源码或素材。
+界面按经典 PCL 重做：960×640 紧凑窗口、蓝色标题栏、四项胶囊导航、左侧独立账号与底部启动按钮，首页右侧留白。版本选择、游戏下载与管理功能各有独立页面。布局和图标由 MDCL 实现，未复制 PCL 源码或素材。
 
 ## 使用
 
@@ -14,7 +14,7 @@ Minecraft Java 版桌面启动器，采用 C# / .NET 10、Avalonia 和 MVVM，�
 
 ## 当前证据（2026-10-25）
 
-- 171 项 .NET 自动化测试通过（Core 19、Integration 147、Desktop 5），另有 2 项 Python 发布来源测试通过；锁定还原和 Release 构建通过。
+- 176 项 .NET 自动化测试通过（Core 19、Integration 149、Desktop 8），另有 2 项 Python 发布来源测试通过；锁定还原和 Release 构建通过。
 - Windows 原版 `1.20.1`、`26.3` 均在真实下载后两次到达主菜单并正常退出。26.3 使用自动安装的 Temurin Java 25，中文路径已验证。
 - Forge 47.2.0、NeoForge 47.1.106 与 Forge + Embeddium mrpack 的既有 Windows 主菜单证据保留；本轮补充取消、恢复、实例隔离与归档验证。
 - Fabric 0.16.14 / 0.20.1 可安装，但本机首次 remap 在 Java ZIPFS 写入检查失败，首次启动验收未通过。未将手工预 remap 绕过包装成产品功能。

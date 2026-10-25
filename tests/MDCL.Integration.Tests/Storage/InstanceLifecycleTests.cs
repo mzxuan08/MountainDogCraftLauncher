@@ -7,6 +7,26 @@ namespace MDCL.Integration.Tests.Storage;
 
 public sealed class InstanceLifecycleTests
 {
+    [Theory]
+    [InlineData(ResolvedVersionStore.PendingFileName)]
+    [InlineData(MDCL.Infrastructure.Installers.MrpackImportService.PendingFileName)]
+    public async Task Copy_IncompleteInstallRejectedWithoutCreatingLaunchableClone(string marker)
+    {
+        using var temp = new TestDirectory();
+        var paths = new WindowsAppPaths(temp.Path); paths.EnsureDirectories();
+        var repository = new FileInstanceRepository(paths.InstancesRoot);
+        var service = new InstanceLifecycleService(paths, repository,
+            new SqliteInstanceIndex(paths.DatabasePath, repository), new FileInstanceLeaseManager(paths.InstancesRoot));
+        var id = InstanceId.New();
+        await repository.SaveAsync(InstanceStorageTests.TestManifest(id, "incomplete"), 0, CancellationToken.None);
+        var directory = Path.Combine(paths.InstancesRoot, id.ToString());
+        await File.WriteAllTextAsync(Path.Combine(directory, "resolved-version.json"), "{}");
+        await File.WriteAllTextAsync(Path.Combine(directory, marker), "{}");
+        var error = await Assert.ThrowsAsync<MDCL.Core.Errors.MdclException>(() => service.CopyAsync(id, "copy", CancellationToken.None));
+        Assert.Equal("INSTANCE_INSTALL_INCOMPLETE", error.Error.ErrorCode);
+        Assert.Single(await repository.ListAsync(CancellationToken.None));
+    }
+
     [Fact]
     public async Task OwnedInstance_CannotBeMovedWhileRunning()
     {

@@ -16,6 +16,58 @@ namespace MDCL.Desktop.Tests;
 public sealed class WorkflowInteractionTests
 {
     [Fact]
+    public void FourSectionNavigation_KeepsExistingFeatureRoutesReachable()
+    {
+        using var context = new Context();
+        var vm = context.ViewModel;
+        Assert.Equal(new[] { "启动", "下载", "设置", "更多" }, vm.Navigation);
+        vm.SelectedSectionIndex = 1;
+        Assert.Equal(7, vm.SelectedTabIndex);
+        vm.SelectedSidebar = vm.SidebarItems.Single(x => x.PageIndex == 2);
+        Assert.Equal(2, vm.SelectedTabIndex);
+        vm.OpenPacksCommand.Execute(null);
+        Assert.Equal(1, vm.SelectedSectionIndex);
+        Assert.Equal(3, vm.SelectedSidebar?.PageIndex);
+        vm.OpenSettingsCommand.Execute(null);
+        Assert.Equal(2, vm.SelectedSectionIndex);
+        vm.SelectedSectionIndex = 3;
+        vm.SelectedSidebar = vm.SidebarItems.Single(x => x.PageIndex == 5);
+        Assert.Equal(5, vm.SelectedTabIndex);
+        vm.OpenVersionsCommand.Execute(null);
+        Assert.True(vm.IsLaunchSection);
+        Assert.Equal(8, vm.SelectedTabIndex);
+    }
+
+    [Fact]
+    public async Task EmptyLauncherPrimaryAction_OpensDownloadWithoutStartingProcess()
+    {
+        using var context = new Context();
+        var vm = context.ViewModel;
+        Assert.Equal("下载游戏", vm.PrimaryActionLabel);
+        await vm.PrimaryActionCommand.ExecuteAsync(null);
+        Assert.Equal(7, vm.SelectedTabIndex);
+        Assert.False(vm.IsGameRunning);
+    }
+
+    [Fact]
+    public async Task AccountMode_NeverUsesLocalIdentityForMicrosoftMode()
+    {
+        using var context = new Context();
+        var vm = context.ViewModel;
+        await vm.InitializeAsync();
+        Assert.Single(vm.ModeAccounts);
+        vm.IsLocalMode = false;
+        Assert.True(vm.IsMicrosoftMode);
+        Assert.Null(vm.SelectedAccount);
+        Assert.Empty(vm.ModeAccounts);
+        await vm.RefreshCommand.ExecuteAsync(null);
+        Assert.True(vm.IsMicrosoftMode);
+        Assert.Null(vm.SelectedAccount);
+        vm.IsLocalMode = true;
+        Assert.NotNull(vm.SelectedAccount);
+    }
+
+    [Fact]
     public async Task JavaDiscovery_UsesBindingOfInstanceSelectedAfterAwait()
     {
         using var context = new Context();

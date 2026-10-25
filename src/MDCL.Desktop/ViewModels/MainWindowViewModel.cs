@@ -45,6 +45,7 @@ public sealed record AccountRow(AccountProfile Profile)
 }
 
 public sealed record JavaRuntimeRow(string? RuntimeId, string Display);
+public sealed record PageNavigationRow(string Label, int PageIndex);
 
 public sealed partial class MainWindowViewModel : ObservableObject
 {
@@ -63,8 +64,9 @@ public sealed partial class MainWindowViewModel : ObservableObject
     private TaskCompletionSource? _operationCompletion;
     private long _modGeneration;
     private MrpackPreview? _mrpackPreview;
+    private bool _synchronizingNavigation;
 
-    [ObservableProperty] private string _status = "正在初始化…";
+    [ObservableProperty, NotifyPropertyChangedFor(nameof(ShowTaskPanel))] private string _status = "正在初始化…";
     [ObservableProperty] private string _newInstanceName = "我的原版";
     [ObservableProperty] private string _newVersion = "1.20.1";
     [ObservableProperty] private string _localDisplayName = "本地玩家";
@@ -82,6 +84,9 @@ public sealed partial class MainWindowViewModel : ObservableObject
     [ObservableProperty] private string _mrpackInstanceName = "导入的整合包";
     [ObservableProperty] private string _mrpackPreviewText = "请先预览，确认版本、来源和限制后导入。";
     [ObservableProperty] private int _selectedTabIndex;
+    [ObservableProperty] private int _selectedSectionIndex;
+    [ObservableProperty] private PageNavigationRow? _selectedSidebar;
+    [ObservableProperty] private bool _isLocalMode = true;
     [ObservableProperty] private string _editInstanceName = "";
     [ObservableProperty] private int _editMemoryMiB = 4096;
     [ObservableProperty] private string _copyInstanceName = "";
@@ -100,13 +105,81 @@ public sealed partial class MainWindowViewModel : ObservableObject
         _mrpackImport = mrpackImport;
         _lifecycle = lifecycle;
         _diagnostics = diagnostics;
+        Accounts.CollectionChanged += (_, _) => OnPropertyChanged(nameof(ModeAccounts));
+        SynchronizeNavigation();
     }
 
     public string Title => "MDCL";
     public string Subtitle => "Minecraft Java Edition · Windows / macOS";
     public string RunState => IsGameRunning ? "运行中" : "未运行";
     public bool HasActiveWork => IsBusy || IsGameRunning;
-    public string[] Navigation { get; } = ["启动", "加载器", "模组", "整合包", "账号", "日志", "设置"];
+    public string[] Navigation { get; } = ["启动", "下载", "设置", "更多"];
+    public ObservableCollection<PageNavigationRow> SidebarItems { get; } = [];
+    public bool IsLaunchSection => SelectedSectionIndex == 0;
+    public bool ShowInstanceContext => SelectedTabIndex is 1 or 2 or 5 or 6;
+    public string SidebarTitle => Navigation[Math.Clamp(SelectedSectionIndex, 0, 3)];
+    public Avalonia.Controls.GridLength SidebarWidth => new(IsLaunchSection ? 300 : 170);
+    public bool IsMicrosoftMode { get => !IsLocalMode; set => IsLocalMode = !value; }
+    public IReadOnlyList<AccountRow> ModeAccounts => Accounts.Where(x => (x.Profile.Kind == AccountKind.Local) == IsLocalMode).ToArray();
+    public string PrimaryActionLabel => SelectedInstance is null ? "下载游戏" : SelectedInstance.IsInstalled ? "启动游戏" : "安装游戏";
+    public string PrimaryActionDetail => SelectedInstance is null ? "未找到可用的游戏版本" : $"{SelectedInstance.Manifest.DisplayName} · {SelectedInstance.Manifest.BaseVersion}";
+    public bool ShowTaskPanel => IsBusy || IsGameRunning || (!string.IsNullOrWhiteSpace(Status) && !Status.StartsWith("就绪", StringComparison.Ordinal));
+
+    partial void OnSelectedSectionIndexChanged(int value)
+    {
+        if (_synchronizingNavigation) return;
+        SelectedTabIndex = value switch { 0 => 0, 1 => 7, 2 => 6, _ => 9 };
+        SynchronizeNavigation();
+    }
+    partial void OnSelectedTabIndexChanged(int value) => SynchronizeNavigation();
+    partial void OnSelectedSidebarChanged(PageNavigationRow? value)
+    {
+        if (!_synchronizingNavigation && value is not null) SelectedTabIndex = value.PageIndex;
+    }
+    private void SynchronizeNavigation()
+    {
+        _synchronizingNavigation = true;
+        try
+        {
+            SelectedSectionIndex = SelectedTabIndex switch { 1 or 2 or 3 or 7 => 1, 6 => 2, 5 or 9 => 3, _ => 0 };
+            SidebarItems.Clear();
+            PageNavigationRow[] rows = SelectedSectionIndex switch
+            {
+                1 => [new("游戏下载", 7), new("加载器安装", 1), new("模组", 2), new("整合包", 3)],
+                2 => [new("版本设置", 6), new("版本选择", 8)],
+                3 => [new("关于 MDCL", 9), new("日志与诊断", 5)],
+                _ => []
+            };
+            foreach (var row in rows) SidebarItems.Add(row);
+            SelectedSidebar = SidebarItems.FirstOrDefault(x => x.PageIndex == SelectedTabIndex);
+            OnPropertyChanged(nameof(IsLaunchSection));
+            OnPropertyChanged(nameof(ShowInstanceContext));
+            OnPropertyChanged(nameof(SidebarWidth));
+            OnPropertyChanged(nameof(SidebarTitle));
+        }
+        finally { _synchronizingNavigation = false; }
+    }
+    partial void OnIsLocalModeChanged(bool value)
+    {
+        OnPropertyChanged(nameof(IsMicrosoftMode));
+        OnPropertyChanged(nameof(ModeAccounts));
+        if (SelectedAccount is null || (SelectedAccount.Profile.Kind == AccountKind.Local) != value)
+            SelectedAccount = ModeAccounts.FirstOrDefault();
+    }
+    private bool CanPrimaryAction() => !IsBusy && !IsGameRunning;
+    [RelayCommand(CanExecute = nameof(CanPrimaryAction))]
+    private async Task PrimaryActionAsync()
+    {
+        if (SelectedInstance is null) SelectedTabIndex = 7;
+        else if (!SelectedInstance.IsInstalled) await InstallCommand.ExecuteAsync(null);
+        else if (SelectedAccount is null) SelectedTabIndex = 4;
+        else await LaunchCommand.ExecuteAsync(null);
+    }
+    [RelayCommand] private void OpenVersions() => SelectedTabIndex = 8;
+    [RelayCommand] private void OpenSettings() => SelectedTabIndex = 6;
+    [RelayCommand] private void OpenDownload() => SelectedTabIndex = 7;
+    [RelayCommand] private void OpenHome() => SelectedTabIndex = 0;
+    [RelayCommand(CanExecute = nameof(CanPrimaryAction))] private void DismissStatus() => Status = "就绪。";
     public ObservableCollection<InstanceRow> Instances { get; } = [];
     public ObservableCollection<AccountRow> Accounts { get; } = [];
     public ObservableCollection<string> Logs { get; } = [];
@@ -144,7 +217,7 @@ public sealed partial class MainWindowViewModel : ObservableObject
         Accounts.Clear();
         foreach (var account in await _workflow.Accounts.ListAsync(ct)) Accounts.Add(new AccountRow(account));
         SelectedInstance = Instances.FirstOrDefault(x => x.Id == selectedId) ?? Instances.FirstOrDefault();
-        SelectedAccount = Accounts.FirstOrDefault(x => x.Id == selectedAccountId) ?? Accounts.FirstOrDefault();
+        SelectedAccount = Accounts.FirstOrDefault(x => x.Id == selectedAccountId) ?? ModeAccounts.FirstOrDefault();
         TrashInstances.Clear();
         foreach(var instance in await _lifecycle.ListTrashAsync(ct)) TrashInstances.Add(new InstanceRow(instance));
         SelectedTrashInstance = TrashInstances.FirstOrDefault();
@@ -562,6 +635,12 @@ public sealed partial class MainWindowViewModel : ObservableObject
 
     private void NotifyCommands()
     {
+        PrimaryActionCommand.NotifyCanExecuteChanged();
+        DismissStatusCommand.NotifyCanExecuteChanged();
+        OnPropertyChanged(nameof(HasActiveWork));
+        OnPropertyChanged(nameof(PrimaryActionLabel));
+        OnPropertyChanged(nameof(PrimaryActionDetail));
+        OnPropertyChanged(nameof(ShowTaskPanel));
         CreateCommand.NotifyCanExecuteChanged();
         InstallCommand.NotifyCanExecuteChanged();
         InstallFabricCommand.NotifyCanExecuteChanged();
@@ -608,7 +687,11 @@ public sealed partial class MainWindowViewModel : ObservableObject
     partial void OnDiagnosticPreviewChanged(string value) => ExportDiagnosticsCommand.NotifyCanExecuteChanged();
 
     partial void OnSelectedLocalModChanged(LocalModRow? value) => ToggleModCommand.NotifyCanExecuteChanged();
-    partial void OnSelectedAccountChanged(AccountRow? value) => NotifyCommands();
+    partial void OnSelectedAccountChanged(AccountRow? value)
+    {
+        if (value is not null) IsLocalMode = value.Profile.Kind == AccountKind.Local;
+        NotifyCommands();
+    }
     partial void OnSelectedModrinthProjectChanged(ModrinthProjectRow? value) => InstallModrinthCommand.NotifyCanExecuteChanged();
     partial void OnModrinthQueryChanged(string value) => SearchModrinthCommand.NotifyCanExecuteChanged();
     partial void OnMrpackPathChanged(string value)
