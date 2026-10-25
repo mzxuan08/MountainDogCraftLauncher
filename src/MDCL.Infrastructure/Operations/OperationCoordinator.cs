@@ -21,18 +21,23 @@ public sealed class OperationCoordinator : IOperationCoordinator
     public async Task<OperationResult> RunAsync(
         InstallPlan plan, string targetRoot, IProgress<OperationEvent>? progress, CancellationToken ct)
     {
-        var operationDirectory = Path.Combine(_stagingRoot, SafeName(plan.PlanId));
+        // A journal belongs to a target as well as a plan. Identical packs may be
+        // installed into multiple isolated instances.
+        var targetIdentity = Path.GetFullPath(targetRoot).TrimEnd(Path.DirectorySeparatorChar);
+        if (OperatingSystem.IsWindows()) targetIdentity = targetIdentity.ToUpperInvariant();
+        var operationDirectory = Path.Combine(_stagingRoot, SafeName(plan.PlanId + "|" + targetIdentity));
         var store = new InstallJournalStore(Path.Combine(operationDirectory, "journal.json"));
         var journal = await store.LoadAsync(ct);
         if (journal is not null && !string.Equals(journal.PlanHash, plan.PlanHash, StringComparison.Ordinal))
             return new OperationResult(OperationState.RecoveryRequired,
                 MdclError.Of("INSTALL_PLAN_MISMATCH", "Installation", "journal 与当前安装计划哈希不一致。", false));
-        if (journal is { State: "Completed" }) return new OperationResult(OperationState.Completed);
         journal ??= InstallJournalStore.Create(plan.PlanId, plan.PlanHash, plan.Steps.Select(x => x.StepId));
         journal = journal with
         {
             State = "Running",
-            Steps = journal.Steps.Select(x => x.State == "Completed" ? x : x with { State = "Pending", ErrorCode = null }).ToArray()
+            // Reconcile disk on every invocation, including completed plans.
+            // EnsureAsync verifies hashes and avoids network traffic on cache hits.
+            Steps = journal.Steps.Select(x => x with { State = "Pending", ErrorCode = null }).ToArray()
         };
         long sequence = 0;
         void Emit(InstallStep step, OperationState state, long? done, long? total, string message)

@@ -24,3 +24,4 @@ Baseline: 46d02ca; branch: codex/mdcl-completion. Existing T00—T12 commits are
 
 T00–T12: existing implementation accepted only to the extent of recorded evidence; continuation results will be appended per commit. Unrun matrix cases remain unrun.
 `nT01: fixed unsupported-schema creation and mismatched manifest identity; both regression tests failed before the fix. Full Release suite: 130 passed, 0 failed. T02: existing deterministic resolver fixtures verified in the same suite; no parser changes in this step.
+`nT03: completed journals now reconcile actual artifacts and bind to target identity. Corrupted-file regression failed before fix; verified repair, second-target installation, then cache reuse without another HTTP request. Full Release suite: 131 passed. Ruling: revalidate completed steps through the existing downloader, trading local hashing for reliable repair.
