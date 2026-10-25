@@ -44,6 +44,8 @@ public static class CompositionRoot
         services.AddSingleton<IVersionMetadataSource>(metadata);
         services.AddSingleton<IAssetIndexSource>(metadata);
         services.AddSingleton<IComponentVersionProvider, MDCL.Infrastructure.Installers.FabricComponentVersionProvider>();
+        services.AddSingleton<IComponentVersionProvider>(_ => new MDCL.Infrastructure.Installers.ForgeInstalledVersionProvider(paths, MDCL.Core.Instances.LoaderKind.Forge));
+        services.AddSingleton<IComponentVersionProvider>(_ => new MDCL.Infrastructure.Installers.ForgeInstalledVersionProvider(paths, MDCL.Core.Instances.LoaderKind.NeoForge));
         services.AddSingleton<IVersionResolver, VersionResolver>();
         services.AddSingleton<IArtifactDownloader>(new ArtifactDownloader(http));
         services.AddSingleton<IInstallPlanner, VanillaInstallPlanner>();
