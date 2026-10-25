@@ -1,0 +1,28 @@
+import java.nio.file.*;
+import java.nio.file.attribute.*;
+import java.util.*;
+import java.util.jar.*;
+import java.lang.instrument.Instrumentation;
+public class ProbeAgent {
+  public static void main(String[] args) { inspect(Path.of(args[0])); }
+  public static void premain(String args, Instrumentation unused) {
+    Thread thread = new Thread(() -> {
+      try { Thread.sleep(1800); inspect(Path.of(args)); } catch(Exception e) {e.printStackTrace();}
+    }, "mdcl-zipfs-diagnostic");
+    thread.setDaemon(true); thread.start();
+  }
+  static void inspect(Path directory) {
+    try {
+      Files.createDirectories(directory);
+      Path target = directory.resolve("probe-"+ProcessHandle.current().pid()+".jar.tmp");
+      try(JarOutputStream out = new JarOutputStream(Files.newOutputStream(target))) {}
+      System.out.println("MDCL_PROBE pid="+ProcessHandle.current().pid()+" canWrite="+target.toFile().canWrite()+" nioWritable="+Files.isWritable(target)+" dosReadOnly="+Files.getAttribute(target,"dos:readonly")+" storeReadOnly="+Files.getFileStore(target).isReadOnly());
+      try(FileSystem zip = FileSystems.newFileSystem(target, Map.of())) {
+        System.out.println("MDCL_PROBE zipReadOnly="+zip.isReadOnly()+" provider="+zip.provider().getClass().getName());
+        try { Files.writeString(zip.getPath("/probe.txt"),"ok"); System.out.println("MDCL_PROBE zipWrite=ok"); }
+        catch(Exception e) { System.out.println("MDCL_PROBE zipWrite="+e.getClass().getName()); }
+      }
+      Files.delete(target);
+    } catch(Exception e) { e.printStackTrace(); }
+  }
+}
