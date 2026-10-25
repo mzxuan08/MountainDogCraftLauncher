@@ -7,16 +7,20 @@ using MDCL.Core.Errors;
 
 namespace MDCL.Infrastructure.Authentication;
 
-public sealed class MicrosoftAuthProtocol
+public sealed class MicrosoftAuthProtocol : IDisposable
 {
     private readonly HttpClient _http;
     private readonly MicrosoftAuthOptions _options;
+    private readonly bool _ownsHttpClient;
 
-    public MicrosoftAuthProtocol(HttpClient http, MicrosoftAuthOptions options)
+    public MicrosoftAuthProtocol(HttpClient http, MicrosoftAuthOptions options, bool ownsHttpClient = false)
     {
         _http = http;
         _options = options;
+        _ownsHttpClient = ownsHttpClient;
     }
+
+    public void Dispose() { if (_ownsHttpClient) _http.Dispose(); }
 
     public static (string Verifier, string Challenge) CreatePkce()
     {
@@ -33,10 +37,11 @@ public sealed class MicrosoftAuthProtocol
         $"&response_mode=query&scope={Uri.EscapeDataString(_options.Scopes)}" +
         $"&state={Uri.EscapeDataString(state)}&code_challenge={Uri.EscapeDataString(challenge)}&code_challenge_method=S256");
 
-    public async Task<MicrosoftLoginResult> LoginAsync(string code, string verifier, CancellationToken ct)
+    public async Task<MicrosoftLoginResult> LoginAsync(string code, string verifier, CancellationToken ct, IProgress<AuthStageEvent>? progress = null)
     {
         var tokens = await ExchangeCodeAsync(code, verifier, ct);
-        return await CompleteMinecraftLoginAsync(tokens, ct);
+        Report(progress, AuthStage.MicrosoftTokenReceived, "auth-microsoft-token");
+        return await CompleteMinecraftLoginAsync(tokens, ct, progress);
     }
 
     public async Task<MicrosoftLoginResult> RefreshAsync(string refreshToken, CancellationToken ct)
@@ -81,7 +86,7 @@ public sealed class MicrosoftAuthProtocol
         return new OAuthTokens(access.GetString()!, refresh, DateTimeOffset.UtcNow.AddSeconds(seconds));
     }
 
-    private async Task<MicrosoftLoginResult> CompleteMinecraftLoginAsync(OAuthTokens tokens, CancellationToken ct)
+    private async Task<MicrosoftLoginResult> CompleteMinecraftLoginAsync(OAuthTokens tokens, CancellationToken ct, IProgress<AuthStageEvent>? progress = null)
     {
         var xbox = await PostJsonAsync("https://user.auth.xboxlive.com/user/authenticate", new
         {
@@ -91,6 +96,7 @@ public sealed class MicrosoftAuthProtocol
         }, ct);
         var xboxToken = xbox.GetProperty("Token").GetString()!;
         var uhs = xbox.GetProperty("DisplayClaims").GetProperty("xui")[0].GetProperty("uhs").GetString()!;
+        Report(progress, AuthStage.XboxAuthenticated, "auth-xbox");
 
         using var xstsRequest = new HttpRequestMessage(HttpMethod.Post, "https://xsts.auth.xboxlive.com/xsts/authorize")
         {
@@ -106,6 +112,7 @@ public sealed class MicrosoftAuthProtocol
         if (!xstsResponse.IsSuccessStatusCode) throw MapXstsError((int)xstsResponse.StatusCode, xstsBody);
         using var xstsJson = JsonDocument.Parse(xstsBody);
         var xstsToken = xstsJson.RootElement.GetProperty("Token").GetString()!;
+        Report(progress, AuthStage.XstsAuthenticated, "auth-xsts");
 
         using var mcLogin = new HttpRequestMessage(HttpMethod.Post, "https://api.minecraftservices.com/authentication/login_with_xbox")
         {
@@ -113,11 +120,15 @@ public sealed class MicrosoftAuthProtocol
         };
         using var mcLoginResponse = await _http.SendAsync(mcLogin, ct);
         var mcLoginBody = await mcLoginResponse.Content.ReadAsStringAsync(ct);
+        if (mcLoginResponse.StatusCode == System.Net.HttpStatusCode.Forbidden && IsAppRegistrationRejected(mcLoginBody))
+            throw new MdclException(MdclError.Of("AUTH_APP_NOT_APPROVED", "Authentication",
+                "Minecraft 拒绝了 MDCL 的应用注册，请核对 Client ID 并完成 Java Edition API 应用审核。", false));
         if (!mcLoginResponse.IsSuccessStatusCode)
             throw new MdclException(MdclError.Of("AUTH_MINECRAFT_TOKEN_FAILED", "Authentication", "Minecraft 会话令牌获取失败。", false, $"HTTP {(int)mcLoginResponse.StatusCode}"));
         using var mcLoginJson = JsonDocument.Parse(mcLoginBody);
         var mcAccess = mcLoginJson.RootElement.GetProperty("access_token").GetString()!;
         var mcExpires = mcLoginJson.RootElement.TryGetProperty("expires_in", out var mcExp) && mcExp.TryGetInt32(out var sec) ? sec : 86400;
+        Report(progress, AuthStage.MinecraftTokenReceived, "auth-minecraft-token");
 
         using var entitlementRequest = new HttpRequestMessage(HttpMethod.Get, "https://api.minecraftservices.com/entitlements/mcstore");
         entitlementRequest.Headers.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", mcAccess);
@@ -129,6 +140,7 @@ public sealed class MicrosoftAuthProtocol
         using var entitlementJson = JsonDocument.Parse(await entitlementResponse.Content.ReadAsStringAsync(ct));
         if (!entitlementJson.RootElement.TryGetProperty("items", out var items) || items.GetArrayLength() == 0)
             throw new MdclException(MdclError.Of("AUTH_ENTITLEMENT_MISSING", "Authentication", "账号没有可用的 Minecraft Java 版权益。", false));
+        Report(progress, AuthStage.EntitlementsVerified, "auth-entitlements");
 
         using var profileRequest = new HttpRequestMessage(HttpMethod.Get, "https://api.minecraftservices.com/minecraft/profile");
         profileRequest.Headers.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", mcAccess);
@@ -140,6 +152,7 @@ public sealed class MicrosoftAuthProtocol
         using var profileJson = JsonDocument.Parse(await profileResponse.Content.ReadAsStringAsync(ct));
         var name = profileJson.RootElement.GetProperty("name").GetString()!;
         var uuid = profileJson.RootElement.GetProperty("id").GetString()!;
+        Report(progress, AuthStage.ProfileReceived, "auth-profile");
         var profile = new AccountProfile(AccountId.New(), name, AccountKind.Microsoft, uuid);
         var session = new AuthSession(profile, mcAccess, DateTimeOffset.UtcNow.AddSeconds(mcExpires));
         if (string.IsNullOrWhiteSpace(tokens.RefreshToken))
@@ -194,6 +207,21 @@ public sealed class MicrosoftAuthProtocol
             _ => "AUTH_XSTS_FAILED"
         };
         return new MdclException(MdclError.Of(code, "Authentication", $"Xbox XSTS 拒绝，XErr={xerr}，HTTP {status}。", false));
+    }
+
+    private static void Report(IProgress<AuthStageEvent>? progress, AuthStage stage, string code) =>
+        progress?.Report(new AuthStageEvent(stage, code, DateTimeOffset.UtcNow));
+
+    private static bool IsAppRegistrationRejected(string body)
+    {
+        try
+        {
+            using var json = JsonDocument.Parse(body);
+            return new[] { "error", "errorMessage", "message" }.Any(name =>
+                json.RootElement.TryGetProperty(name, out var value) && value.ValueKind == JsonValueKind.String &&
+                value.GetString()!.Contains("invalid app registration", StringComparison.OrdinalIgnoreCase));
+        }
+        catch (JsonException) { return false; }
     }
 
     private static string Base64Url(byte[] bytes) =>

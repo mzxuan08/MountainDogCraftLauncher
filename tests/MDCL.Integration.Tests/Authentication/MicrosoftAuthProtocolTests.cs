@@ -3,6 +3,7 @@ using System.Text;
 using System.Text.Json;
 using MDCL.Application.Ports;
 using MDCL.Core.Errors;
+using MDCL.Core.Accounts;
 using MDCL.Infrastructure.Authentication;
 using Xunit;
 
@@ -11,6 +12,32 @@ namespace MDCL.Integration.Tests.Authentication;
 public sealed class MicrosoftAuthProtocolTests
 {
     private static readonly MicrosoftAuthOptions Options = new("public-test-client", 34127);
+
+    [Fact]
+    public async Task AppRegistrationRejection_IsActionableAndDoesNotExposeServerBody()
+    {
+        var protocol = new MicrosoftAuthProtocol(new HttpClient(new FakeHandler { AppNotApproved = true }), Options);
+        var error = await Assert.ThrowsAsync<MdclException>(() => protocol.LoginAsync("code", "verifier", CancellationToken.None));
+        Assert.Equal("AUTH_APP_NOT_APPROVED", error.Error.ErrorCode);
+        Assert.DoesNotContain("server-secret", error.ToString(), StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public async Task LoginStages_ReportCompletedBoundariesWithoutCredentials()
+    {
+        var stages = new StageRecorder();
+        var protocol = new MicrosoftAuthProtocol(new HttpClient(new FakeHandler()), Options);
+        await protocol.LoginAsync("code", "verifier", CancellationToken.None, stages);
+        Assert.Equal(new[] { AuthStage.MicrosoftTokenReceived, AuthStage.XboxAuthenticated, AuthStage.XstsAuthenticated,
+            AuthStage.MinecraftTokenReceived, AuthStage.EntitlementsVerified, AuthStage.ProfileReceived }, stages.Events.Select(x => x.Stage));
+        Assert.All(stages.Events, item => Assert.DoesNotContain("access", item.MessageCode, StringComparison.OrdinalIgnoreCase));
+    }
+
+    private sealed class StageRecorder : IProgress<AuthStageEvent>
+    {
+        public List<AuthStageEvent> Events { get; } = [];
+        public void Report(AuthStageEvent value) => Events.Add(value);
+    }
 
     [Fact]
     public async Task FullProtocol_ReturnsProfileAndRefreshToken()
@@ -65,6 +92,7 @@ public sealed class MicrosoftAuthProtocolTests
 
     private sealed class FakeHandler : HttpMessageHandler
     {
+        public bool AppNotApproved { get; init; }
         public List<string> Paths { get; } = [];
         public bool RotateRefresh { get; init; }
         public bool EmptyEntitlements { get; init; }
@@ -93,7 +121,10 @@ public sealed class MicrosoftAuthProtocolTests
                 return Json(HttpStatusCode.OK, new { Token = "xsts-token" });
             }
             if (path == "/authentication/login_with_xbox")
+            {
+                if (AppNotApproved) return Json(HttpStatusCode.Forbidden, new { error = "ForbiddenOperationException", errorMessage = "Invalid app registration", detail = "server-secret" });
                 return Json(HttpStatusCode.OK, new { access_token = "mc-access", expires_in = 86400 });
+            }
             if (path == "/entitlements/mcstore")
                 return Json(HttpStatusCode.OK, new { items = EmptyEntitlements ? Array.Empty<object>() : new object[] { new { name = "game_minecraft" } } });
             if (path == "/minecraft/profile")

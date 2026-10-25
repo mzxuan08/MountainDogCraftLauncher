@@ -103,9 +103,71 @@
     },
     {
       "counters": {
-        "total": "149",
-        "executed": "149",
-        "passed": "149",
+        "total": "10",
+        "executed": "10",
+        "passed": "10",
+        "failed": "0",
+        "error": "0",
+        "timeout": "0",
+        "aborted": "0",
+        "inconclusive": "0",
+        "passedButRunAborted": "0",
+        "notRunnable": "0",
+        "notExecuted": "0",
+        "disconnected": "0",
+        "warning": "0",
+        "completed": "0",
+        "inProgress": "0",
+        "pending": "0"
+      },
+      "tests": [
+        {
+          "name": "MDCL.Desktop.Tests.InstanceRowTests.InstanceRow_ShowsStableVersionAndName",
+          "outcome": "Passed"
+        },
+        {
+          "name": "MDCL.Desktop.Tests.WorkflowInteractionTests.AccountMode_NeverUsesLocalIdentityForMicrosoftMode",
+          "outcome": "Passed"
+        },
+        {
+          "name": "MDCL.Desktop.Tests.WorkflowInteractionTests.EmptyLauncherPrimaryAction_OpensDownloadWithoutStartingProcess",
+          "outcome": "Passed"
+        },
+        {
+          "name": "MDCL.Desktop.Tests.WorkflowInteractionTests.FourSectionNavigation_KeepsExistingFeatureRoutesReachable",
+          "outcome": "Passed"
+        },
+        {
+          "name": "MDCL.Desktop.Tests.WorkflowInteractionTests.ImportWithoutReviewedPreview_IsDisabled",
+          "outcome": "Passed"
+        },
+        {
+          "name": "MDCL.Desktop.Tests.WorkflowInteractionTests.InstallCancellation_ReleasesBusyStateAndCanRetry",
+          "outcome": "Passed"
+        },
+        {
+          "name": "MDCL.Desktop.Tests.WorkflowInteractionTests.JavaDiscovery_UsesBindingOfInstanceSelectedAfterAwait",
+          "outcome": "Passed"
+        },
+        {
+          "name": "MDCL.Desktop.Tests.WorkflowInteractionTests.LocalIdentity_CanManageExistingInstance_ButPrimaryActionRequestsMicrosoftLogin",
+          "outcome": "Passed"
+        },
+        {
+          "name": "MDCL.Desktop.Tests.WorkflowInteractionTests.MissingInstance_DisablesInstallLaunchAndStop",
+          "outcome": "Passed"
+        },
+        {
+          "name": "MDCL.Desktop.Tests.WorkflowInteractionTests.PublicClientConfiguration_RejectsMalformedInput_AndClearlyRequiresRestart",
+          "outcome": "Passed"
+        }
+      ]
+    },
+    {
+      "counters": {
+        "total": "168",
+        "executed": "168",
+        "passed": "168",
         "failed": "0",
         "error": "0",
         "timeout": "0",
@@ -186,7 +248,47 @@
           "outcome": "Passed"
         },
         {
+          "name": "MDCL.Integration.Tests.Authentication.AuthenticatedLaunchTests.InvalidIdentity_IsRejectedBeforeJavaOrProcessWork_AndRetainsAllData(kind: Local, token: \"\", expired: False, code: \"AUTH_MICROSOFT_REQUIRED\")",
+          "outcome": "Passed"
+        },
+        {
+          "name": "MDCL.Integration.Tests.Authentication.AuthenticatedLaunchTests.InvalidIdentity_IsRejectedBeforeJavaOrProcessWork_AndRetainsAllData(kind: Microsoft, token: \"\", expired: False, code: \"AUTH_SESSION_INVALID\")",
+          "outcome": "Passed"
+        },
+        {
+          "name": "MDCL.Integration.Tests.Authentication.AuthenticatedLaunchTests.InvalidIdentity_IsRejectedBeforeJavaOrProcessWork_AndRetainsAllData(kind: Microsoft, token: \"expired-fixture-token\", expired: True, code: \"AUTH_SESSION_INVALID\")",
+          "outcome": "Passed"
+        },
+        {
           "name": "MDCL.Integration.Tests.Authentication.CredentialVaultTests.DpapiVault_RoundTripsAndDeletesWithoutPlaintext",
+          "outcome": "Passed"
+        },
+        {
+          "name": "MDCL.Integration.Tests.Authentication.LoopbackAuthorizationTests.CallerCancellation_ReleasesListenerWithoutWaitingForBrowser",
+          "outcome": "Passed"
+        },
+        {
+          "name": "MDCL.Integration.Tests.Authentication.LoopbackAuthorizationTests.InvalidCallbacks_AreDistinctAndCloseTheListener(query: \"state=expected-state\", code: \"AUTH_CODE_MISSING\")",
+          "outcome": "Passed"
+        },
+        {
+          "name": "MDCL.Integration.Tests.Authentication.LoopbackAuthorizationTests.InvalidCallbacks_AreDistinctAndCloseTheListener(query: \"state=expected-state&error=access_denied\", code: \"AUTH_CANCELED\")",
+          "outcome": "Passed"
+        },
+        {
+          "name": "MDCL.Integration.Tests.Authentication.LoopbackAuthorizationTests.InvalidCallbacks_AreDistinctAndCloseTheListener(query: \"state=expected-state&state=expected-state&code=fix\"···, code: \"AUTH_CALLBACK_INVALID\")",
+          "outcome": "Passed"
+        },
+        {
+          "name": "MDCL.Integration.Tests.Authentication.LoopbackAuthorizationTests.InvalidCallbacks_AreDistinctAndCloseTheListener(query: \"state=wrong&error=access_denied\", code: \"AUTH_STATE_MISMATCH\")",
+          "outcome": "Passed"
+        },
+        {
+          "name": "MDCL.Integration.Tests.Authentication.LoopbackAuthorizationTests.OccupiedPort_IsActionable_AndDoesNotOpenBrowser",
+          "outcome": "Passed"
+        },
+        {
+          "name": "MDCL.Integration.Tests.Authentication.LoopbackAuthorizationTests.UnrelatedRequest_DoesNotConsumeLogin_AndCallbackResponseDoesNotEchoCode",
           "outcome": "Passed"
         },
         {
@@ -210,6 +312,38 @@
           "outcome": "Passed"
         },
         {
+          "name": "MDCL.Integration.Tests.Authentication.MicrosoftAuthConfigurationTests.BundledIdentity_IsDefault_AndClearingOverrideRestoresIt",
+          "outcome": "Passed"
+        },
+        {
+          "name": "MDCL.Integration.Tests.Authentication.MicrosoftAuthConfigurationTests.CanceledSave_PreservesExistingConfigurationAndCleansTemporaryFile",
+          "outcome": "Passed"
+        },
+        {
+          "name": "MDCL.Integration.Tests.Authentication.MicrosoftAuthConfigurationTests.EnvironmentOverride_IsExplicit_AndNeverOverwritesSavedIdentity",
+          "outcome": "Passed"
+        },
+        {
+          "name": "MDCL.Integration.Tests.Authentication.MicrosoftAuthConfigurationTests.InvalidConfiguration_DisablesMicrosoftWithoutBreakingLocalStartup(document: \"{\\\"clientId\\\":\\\"cf4175e2-8cc4-4a52-9c12-603f1f46d8\"···)",
+          "outcome": "Passed"
+        },
+        {
+          "name": "MDCL.Integration.Tests.Authentication.MicrosoftAuthConfigurationTests.InvalidConfiguration_DisablesMicrosoftWithoutBreakingLocalStartup(document: \"{\\\"schemaVersion\\\":99,\\\"clientId\\\":\\\"cf4175e2-8cc4\"···)",
+          "outcome": "Passed"
+        },
+        {
+          "name": "MDCL.Integration.Tests.Authentication.MicrosoftAuthConfigurationTests.InvalidConfiguration_DisablesMicrosoftWithoutBreakingLocalStartup(document: \"{broken\")",
+          "outcome": "Passed"
+        },
+        {
+          "name": "MDCL.Integration.Tests.Authentication.MicrosoftAuthConfigurationTests.SaveAndReopen_UsesPublicIdOnly_AndDoesNotMutateInFlightOptions",
+          "outcome": "Passed"
+        },
+        {
+          "name": "MDCL.Integration.Tests.Authentication.MicrosoftAuthProtocolTests.AppRegistrationRejection_IsActionableAndDoesNotExposeServerBody",
+          "outcome": "Passed"
+        },
+        {
           "name": "MDCL.Integration.Tests.Authentication.MicrosoftAuthProtocolTests.EmptyEntitlements_IsDistinctError",
           "outcome": "Passed"
         },
@@ -219,6 +353,10 @@
         },
         {
           "name": "MDCL.Integration.Tests.Authentication.MicrosoftAuthProtocolTests.InvalidGrant_MapsToReauthentication",
+          "outcome": "Passed"
+        },
+        {
+          "name": "MDCL.Integration.Tests.Authentication.MicrosoftAuthProtocolTests.LoginStages_ReportCompletedBoundariesWithoutCredentials",
           "outcome": "Passed"
         },
         {
@@ -718,64 +856,10 @@
           "outcome": "Passed"
         }
       ]
-    },
-    {
-      "counters": {
-        "total": "8",
-        "executed": "8",
-        "passed": "8",
-        "failed": "0",
-        "error": "0",
-        "timeout": "0",
-        "aborted": "0",
-        "inconclusive": "0",
-        "passedButRunAborted": "0",
-        "notRunnable": "0",
-        "notExecuted": "0",
-        "disconnected": "0",
-        "warning": "0",
-        "completed": "0",
-        "inProgress": "0",
-        "pending": "0"
-      },
-      "tests": [
-        {
-          "name": "MDCL.Desktop.Tests.InstanceRowTests.InstanceRow_ShowsStableVersionAndName",
-          "outcome": "Passed"
-        },
-        {
-          "name": "MDCL.Desktop.Tests.WorkflowInteractionTests.AccountMode_NeverUsesLocalIdentityForMicrosoftMode",
-          "outcome": "Passed"
-        },
-        {
-          "name": "MDCL.Desktop.Tests.WorkflowInteractionTests.EmptyLauncherPrimaryAction_OpensDownloadWithoutStartingProcess",
-          "outcome": "Passed"
-        },
-        {
-          "name": "MDCL.Desktop.Tests.WorkflowInteractionTests.FourSectionNavigation_KeepsExistingFeatureRoutesReachable",
-          "outcome": "Passed"
-        },
-        {
-          "name": "MDCL.Desktop.Tests.WorkflowInteractionTests.ImportWithoutReviewedPreview_IsDisabled",
-          "outcome": "Passed"
-        },
-        {
-          "name": "MDCL.Desktop.Tests.WorkflowInteractionTests.InstallCancellation_ReleasesBusyStateAndCanRetry",
-          "outcome": "Passed"
-        },
-        {
-          "name": "MDCL.Desktop.Tests.WorkflowInteractionTests.JavaDiscovery_UsesBindingOfInstanceSelectedAfterAwait",
-          "outcome": "Passed"
-        },
-        {
-          "name": "MDCL.Desktop.Tests.WorkflowInteractionTests.MissingInstance_DisablesInstallLaunchAndStop",
-          "outcome": "Passed"
-        }
-      ]
     }
   ],
-  "total": 176,
-  "passed": 176,
+  "total": 197,
+  "passed": 197,
   "failed": 0,
   "packagingTests": {
     "passed": 2,

@@ -10,17 +10,17 @@ Minecraft Java 版桌面启动器，采用 C# / .NET 10、Avalonia 和 MVVM，�
 
 从本仓库 Releases 下载对应平台包。Windows 解压后运行 `MDCL.Desktop.exe`，无需另装 .NET。先创建实例，填写 Mojang 版本 ID，再点击「安装 / 修复」，完成后启动。Java 按版本要求发现或安装，也可在设置页绑定。
 
-本地身份不提供微软正版会话。微软登录需要为 MDCL 配置专属 public client；不得借用其他启动器的应用 ID。当前开发包未签名；两种 Mac 构建均未真机验证、未签名和未公证。
+alpha.3 起，游戏启动必须使用通过身份、Java 权益和玩家资料验证的微软账号。已注册并内置 MDCL 自有应用 ID；本地资料和实例数据保留，但不能免认证启动。Minecraft API 应用审核与真实登录仍待完成，详见[微软登录接入](docs/微软登录接入.md)。当前开发包未签名；两种 Mac 构建均未真机验证、未签名和未公证。
 
 ## 当前证据（2026-10-25）
 
-- 176 项 .NET 自动化测试通过（Core 19、Integration 149、Desktop 8），另有 2 项 Python 发布来源测试通过；锁定还原和 Release 构建通过。
-- Windows 原版 `1.20.1`、`26.3` 均在真实下载后两次到达主菜单并正常退出。26.3 使用自动安装的 Temurin Java 25，中文路径已验证。
+- 197 项 .NET 自动化测试通过（Core 19、Integration 168、Desktop 10），另有 2 项 Python 发布来源测试通过；锁定还原和 Release 构建通过。
+- alpha.2 及之前的 Windows 原版 `1.20.1`、`26.3` 均在真实下载后两次到达主菜单并正常退出。26.3 使用自动安装的 Temurin Java 25，中文路径已验证。这些旧本地身份截图不替代 alpha.3 的真实微软账号验收。
 - Forge 47.2.0、NeoForge 47.1.106 与 Forge + Embeddium mrpack 的既有 Windows 主菜单证据保留；本轮补充取消、恢复、实例隔离与归档验证。
 - Fabric 0.16.14 / 0.20.1 可安装，但本机首次 remap 在 Java ZIPFS 写入检查失败，首次启动验收未通过。未将手工预 remap 绕过包装成产品功能。
 - 更新器提供清单验签、摘要校验、健康检查、备份、回退与中断恢复。生产根密钥、平台签名与撤销机制尚未验收，桌面自动更新入口未启用。
 
-跨平台构建不代表 Mac 运行通过。真实微软登录、Mac Keychain、Gatekeeper、签名/公证、Mac 游戏启动与性能目标仍未实测。完整边界见[发布矩阵](docs/evidence/release-matrix.md)与[接续验收记录](docs/evidence/continuation-final.md)。
+跨平台构建不代表 Mac 运行通过。真实微软登录仍需 Minecraft API 审核及持有权益的账号；Mac Keychain、Gatekeeper、签名/公证、Mac 游戏启动与性能目标仍未实测。完整边界见[发布矩阵](docs/evidence/release-matrix.md)与[接续验收记录](docs/evidence/continuation-final.md)。
 
 ## 构建与测试
 

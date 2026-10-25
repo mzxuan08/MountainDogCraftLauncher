@@ -74,7 +74,7 @@
             <Grid IsVisible="{Binding IsLaunchSection}" RowDefinitions="Auto,*,Auto" Margin="20,22,20,20">
               <StackPanel Orientation="Horizontal" Spacing="12" HorizontalAlignment="Center">
                 <RadioButton Classes="auth" GroupName="AccountMode" IsChecked="{Binding IsMicrosoftMode}" Content="正版"/>
-                <RadioButton Classes="auth" GroupName="AccountMode" IsChecked="{Binding IsLocalMode}" Content="离线"/>
+                <RadioButton Classes="auth" GroupName="AccountMode" IsChecked="{Binding IsLocalMode}" Content="本地资料"/>
               </StackPanel>
               <StackPanel Grid.Row="1" VerticalAlignment="Center" Spacing="22" Margin="0,0,0,24">
                 <Path Width="42" Height="48" Stretch="Uniform" Stroke="#5B9AD2" StrokeThickness="2.8" StrokeLineCap="Round" HorizontalAlignment="Center" Data="M 30,10 A 8,8 0 1 1 14,10 A 8,8 0 1 1 30,10 M 8,38 C 8,19 36,19 36,38"/>
@@ -244,9 +244,22 @@
                     <Button Grid.Column="1" Content="添加本地身份" Command="{Binding AddLocalCommand}" />
                     <Button Grid.Column="2" Classes="accent" Content="微软登录" Command="{Binding LoginMicrosoftCommand}" />
                   </Grid>
-                  <TextBlock Text="本地身份不提供正版会话。微软登录需要 MDCL 专属 public client；未配置时会明确提示条件不足。"
+                  <TextBlock Text="启动游戏需要通过身份和 Java 版权益验证的微软账号。本地资料仅保留配置与数据，不再用于免认证启动。"
                              Classes="muted" TextWrapping="Wrap" />
                 </StackPanel>
+              </Border>
+              <Border Classes="card">
+                <Expander Header="微软登录应用设置" IsExpanded="{Binding !IsMicrosoftConfigured}" HorizontalAlignment="Stretch" HorizontalContentAlignment="Stretch">
+                  <StackPanel Spacing="10" Margin="0,12,0,0">
+                    <TextBlock Text="应用程序（客户端）ID" />
+                    <TextBox Text="{Binding MicrosoftClientId}" PlaceholderText="MDCL 在 Microsoft Entra 中的 Client ID" />
+                    <TextBlock Text="{Binding MicrosoftClientIdHint}" Classes="muted" TextWrapping="Wrap" />
+                    <TextBlock Text="注册应用时使用以下桌面回调地址" />
+                    <TextBox Text="{Binding MicrosoftCallbackUri}" IsReadOnly="True" />
+                    <Button Classes="accent" Content="保存应用 ID" Command="{Binding SaveMicrosoftClientIdCommand}" HorizontalAlignment="Left" />
+                    <TextBlock Text="{Binding MicrosoftConfigurationStatus}" Classes="muted" TextWrapping="Wrap" />
+                  </StackPanel>
+                </Expander>
               </Border>
             </StackPanel>
           </ScrollViewer>

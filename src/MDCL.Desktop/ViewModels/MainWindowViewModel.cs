@@ -12,6 +12,7 @@ using MDCL.Infrastructure.Metadata;
 using MDCL.Infrastructure.Mods;
 using MDCL.Infrastructure.Diagnostics;
 using MDCL.Infrastructure.Storage;
+using MDCL.Infrastructure.Authentication;
 
 namespace MDCL.Desktop.ViewModels;
 
@@ -56,6 +57,7 @@ public sealed partial class MainWindowViewModel : ObservableObject
     private readonly MrpackImportService _mrpackImport;
     private readonly InstanceLifecycleService _lifecycle;
     private readonly DiagnosticArchiveService _diagnostics;
+    private readonly MicrosoftAuthConfigurationStore _authConfiguration;
     private IGameSession? _session;
     private DateTimeOffset _lastProgress = DateTimeOffset.MinValue;
     private bool _initialized;
@@ -94,9 +96,13 @@ public sealed partial class MainWindowViewModel : ObservableObject
     [ObservableProperty] private InstanceRow? _selectedTrashInstance;
     [ObservableProperty] private JavaRuntimeRow? _selectedJavaRuntime;
     [ObservableProperty] private string _diagnosticPreview = "";
+    [ObservableProperty, NotifyCanExecuteChangedFor(nameof(SaveMicrosoftClientIdCommand)), NotifyPropertyChangedFor(nameof(MicrosoftClientIdHint))]
+    private string _microsoftClientId = "";
+    [ObservableProperty] private string _microsoftConfigurationStatus = "";
 
     public MainWindowViewModel(LauncherWorkflow workflow, ModrinthProvider modrinth,
-        ModrinthInstallService modrinthInstaller, LocalModService mods, MrpackImportService mrpackImport, InstanceLifecycleService lifecycle, DiagnosticArchiveService diagnostics)
+        ModrinthInstallService modrinthInstaller, LocalModService mods, MrpackImportService mrpackImport, InstanceLifecycleService lifecycle, DiagnosticArchiveService diagnostics,
+        MicrosoftAuthConfigurationStore? authConfiguration = null)
     {
         _workflow = workflow;
         _modrinth = modrinth;
@@ -105,12 +111,30 @@ public sealed partial class MainWindowViewModel : ObservableObject
         _mrpackImport = mrpackImport;
         _lifecycle = lifecycle;
         _diagnostics = diagnostics;
+        _authConfiguration = authConfiguration ?? new MicrosoftAuthConfigurationStore(workflow.Paths.ConfigRoot);
+        MicrosoftClientId = string.IsNullOrEmpty(_authConfiguration.SavedClientId) ? _authConfiguration.CurrentOptions.ClientId : _authConfiguration.SavedClientId;
+        MicrosoftConfigurationStatus = _authConfiguration.LoadIssue ?? $"当前配置来源：{_authConfiguration.Source}。";
         Accounts.CollectionChanged += (_, _) => OnPropertyChanged(nameof(ModeAccounts));
         SynchronizeNavigation();
     }
 
     public string Title => "MDCL";
     public string Subtitle => "Minecraft Java Edition · Windows / macOS";
+    public bool IsMicrosoftConfigured => !string.IsNullOrEmpty(_authConfiguration.CurrentOptions.ClientId);
+    public string MicrosoftCallbackUri => _authConfiguration.CurrentOptions.RedirectUri;
+    public string MicrosoftClientIdHint => MicrosoftAuthConfigurationStore.IsValidClientId(MicrosoftClientId)
+        ? "无需 Client Secret。留空恢复内置应用；保存后重新打开 MDCL 生效。"
+        : "格式应为应用概述页的 GUID，例如 xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx。";
+    private bool CanSaveMicrosoftClientId() => !IsBusy && MicrosoftAuthConfigurationStore.IsValidClientId(MicrosoftClientId);
+    [RelayCommand(CanExecute = nameof(CanSaveMicrosoftClientId))]
+    private Task SaveMicrosoftClientIdAsync() => RunAsync(async ct =>
+    {
+        await _authConfiguration.SaveAsync(MicrosoftClientId, ct);
+        MicrosoftConfigurationStatus = _authConfiguration.HasEnvironmentOverride
+            ? "已保存；当前环境变量仍优先生效。请修正或移除 MDCL_MICROSOFT_CLIENT_ID 后重新打开 MDCL。"
+            : "已保存，请关闭并重新打开 MDCL 后使用微软登录。更换应用后，已有微软账号需要重新登录。";
+        Status = MicrosoftConfigurationStatus;
+    });
     public string RunState => IsGameRunning ? "运行中" : "未运行";
     public bool HasActiveWork => IsBusy || IsGameRunning;
     public string[] Navigation { get; } = ["启动", "下载", "设置", "更多"];
@@ -121,7 +145,8 @@ public sealed partial class MainWindowViewModel : ObservableObject
     public Avalonia.Controls.GridLength SidebarWidth => new(IsLaunchSection ? 300 : 170);
     public bool IsMicrosoftMode { get => !IsLocalMode; set => IsLocalMode = !value; }
     public IReadOnlyList<AccountRow> ModeAccounts => Accounts.Where(x => (x.Profile.Kind == AccountKind.Local) == IsLocalMode).ToArray();
-    public string PrimaryActionLabel => SelectedInstance is null ? "下载游戏" : SelectedInstance.IsInstalled ? "启动游戏" : "安装游戏";
+    public string PrimaryActionLabel => SelectedInstance is null ? "下载游戏" : !SelectedInstance.IsInstalled ? "安装游戏" :
+        SelectedAccount?.Profile.Kind == AccountKind.Microsoft ? "启动游戏" : "登录后启动";
     public string PrimaryActionDetail => SelectedInstance is null ? "未找到可用的游戏版本" : $"{SelectedInstance.Manifest.DisplayName} · {SelectedInstance.Manifest.BaseVersion}";
     public bool ShowTaskPanel => IsBusy || IsGameRunning || (!string.IsNullOrWhiteSpace(Status) && !Status.StartsWith("就绪", StringComparison.Ordinal));
 
@@ -172,7 +197,11 @@ public sealed partial class MainWindowViewModel : ObservableObject
     {
         if (SelectedInstance is null) SelectedTabIndex = 7;
         else if (!SelectedInstance.IsInstalled) await InstallCommand.ExecuteAsync(null);
-        else if (SelectedAccount is null) SelectedTabIndex = 4;
+        else if (SelectedAccount?.Profile.Kind != AccountKind.Microsoft)
+        {
+            SelectedTabIndex = 4;
+            Status = "请先登录拥有 Minecraft Java 版的微软账号。本地资料和实例数据会继续保留。";
+        }
         else await LaunchCommand.ExecuteAsync(null);
     }
     [RelayCommand] private void OpenVersions() => SelectedTabIndex = 8;
@@ -314,7 +343,7 @@ public sealed partial class MainWindowViewModel : ObservableObject
     }
 
     private bool CanInstall() => !IsBusy && !IsGameRunning && SelectedInstance is not null;
-    private bool CanLaunch() => CanInstall() && SelectedInstance!.IsInstalled && SelectedAccount is not null;
+    private bool CanLaunch() => CanInstall() && SelectedInstance!.IsInstalled && SelectedAccount?.Profile.Kind == AccountKind.Microsoft;
     private bool CanStop() => IsGameRunning;
     private bool CanCancel() => IsBusy && _operationCancellation is { IsCancellationRequested: false };
 
@@ -548,15 +577,35 @@ public sealed partial class MainWindowViewModel : ObservableObject
     {
         await RunAsync(async ct =>
         {
-            Status = "正在打开系统浏览器进行微软登录…";
-            var profile = await _workflow.Accounts.LoginMicrosoftAsync(null, ct);
-            await RefreshCoreAsync(ct);
-            SelectedAccount = Accounts.FirstOrDefault(x => x.Id == profile.Id);
-            Status = $"微软账号“{profile.DisplayName}”已添加。";
+            var acceptingStages = true;
+            var progress = new Progress<AuthStageEvent>(stage =>
+            {
+                if (!acceptingStages) return;
+                Status = stage.Stage switch
+                {
+                    AuthStage.Starting => "正在打开系统浏览器，请完成微软授权…",
+                    AuthStage.BrowserOpened => "浏览器授权已返回，正在验证 Microsoft 令牌…",
+                    AuthStage.MicrosoftTokenReceived => "Microsoft 授权成功，正在验证 Xbox Live…",
+                    AuthStage.XboxAuthenticated => "Xbox Live 已通过，正在获取 XSTS 授权…",
+                    AuthStage.XstsAuthenticated => "XSTS 已通过，正在向 Minecraft 申请会话…",
+                    AuthStage.MinecraftTokenReceived => "正在验证 Minecraft Java 版权益…",
+                    AuthStage.EntitlementsVerified => "正在读取 Minecraft 玩家资料…",
+                    _ => "正在完成账号验证与保存…"
+                };
+            });
+            try
+            {
+                Status = "正在打开系统浏览器进行微软登录…";
+                var profile = await _workflow.Accounts.LoginMicrosoftAsync(progress, ct);
+                await RefreshCoreAsync(ct);
+                SelectedAccount = Accounts.FirstOrDefault(x => x.Id == profile.Id);
+                Status = $"微软账号“{profile.DisplayName}”已添加。";
+            }
+            finally { acceptingStages = false; }
         });
     }
 
-    private bool CanLogin() => !IsBusy;
+    private bool CanLogin() => !IsBusy && IsMicrosoftConfigured;
 
     [RelayCommand]
     private void PreviewDiagnostics() => DiagnosticPreview=_diagnostics.CreatePreview(Logs);
@@ -650,6 +699,7 @@ public sealed partial class MainWindowViewModel : ObservableObject
         StopCommand.NotifyCanExecuteChanged();
         AddLocalCommand.NotifyCanExecuteChanged();
         LoginMicrosoftCommand.NotifyCanExecuteChanged();
+        SaveMicrosoftClientIdCommand.NotifyCanExecuteChanged();
         SearchModrinthCommand.NotifyCanExecuteChanged();
         InstallModrinthCommand.NotifyCanExecuteChanged();
         RefreshModsCommand.NotifyCanExecuteChanged();

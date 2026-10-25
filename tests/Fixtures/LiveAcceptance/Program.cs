@@ -40,8 +40,8 @@ try
     else if (loader is "forge" or "neoforge") await workflow.InstallForgeAsync(instance.InstanceId,
         loader == "forge" ? LoaderKind.Forge : LoaderKind.NeoForge, Required("loader-version"), progress, cts.Token);
     var accounts = await workflow.Accounts.ListAsync(cts.Token);
-    var account = accounts.FirstOrDefault(x => x.Kind == MDCL.Core.Accounts.AccountKind.Local)
-        ?? await workflow.Accounts.AddLocalAsync("MDCLTest", cts.Token);
+    var account = accounts.FirstOrDefault(x => x.Kind == MDCL.Core.Accounts.AccountKind.Microsoft)
+        ?? throw new InvalidOperationException("Real acceptance requires an authenticated Microsoft account with Java ownership. No local-authentication bypass is available.");
     for (var launch = 1; launch <= int.Parse(options.GetValueOrDefault("launch-count", "1")); launch++)
     {
         var outcome = await workflow.LaunchAsync(instance.InstanceId, account.Id, progress, cts.Token);

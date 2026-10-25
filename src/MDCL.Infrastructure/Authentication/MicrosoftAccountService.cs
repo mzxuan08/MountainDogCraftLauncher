@@ -51,8 +51,7 @@ public sealed class MicrosoftAccountService : IAccountService
         var state = MicrosoftAuthProtocol.CreateState();
         var code = await _authorization.AcquireCodeAsync(_options, state, challenge, ct);
         progress?.Report(new AuthStageEvent(AuthStage.BrowserOpened, "auth-code-received", DateTimeOffset.UtcNow));
-        var result = await _protocol.LoginAsync(code, verifier, ct);
-        progress?.Report(new AuthStageEvent(AuthStage.ProfileReceived, "auth-profile-received", DateTimeOffset.UtcNow));
+        var result = await _protocol.LoginAsync(code, verifier, ct, progress);
         var record = new AccountRecord(result.Session.Profile, CredentialKey(result.Session.Profile.Id));
         await _vault.ReplaceAsync(record.CredentialKey, Encoding.UTF8.GetBytes(result.RefreshToken), ct);
         await _store.SaveAsync(record, ct);

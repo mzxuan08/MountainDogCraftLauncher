@@ -24,6 +24,8 @@ namespace MDCL.Desktop.Composition;
 
 public static class CompositionRoot
 {
+    // MDCL-owned public application ID. It is not a secret or another launcher's identity.
+    public const string MicrosoftApplicationId = "4bdf4b28-00fa-40c3-92bf-d89b0a0148e9";
     public static ServiceProvider CreateServiceProvider()
     {
         var services = new ServiceCollection();
@@ -69,9 +71,17 @@ public static class CompositionRoot
             sp.GetRequiredService<IJavaProbe>(), paths.RuntimesRoot, paths.StagingRoot));
         services.AddSingleton<IAccountStore>(new JsonAccountStore(Path.Combine(paths.ConfigRoot, "accounts.json")));
         services.AddSingleton<ICredentialVault>(_ => CreateCredentialVault(paths));
-        services.AddSingleton(new MicrosoftAuthOptions(
-            Environment.GetEnvironmentVariable(LauncherWorkflow.MicrosoftClientEnvironmentVariable) ?? ""));
-        services.AddSingleton<MicrosoftAuthProtocol>();
+        var authConfiguration = new MicrosoftAuthConfigurationStore(paths.ConfigRoot,
+            Environment.GetEnvironmentVariable(LauncherWorkflow.MicrosoftClientEnvironmentVariable), MicrosoftApplicationId);
+        services.AddSingleton(authConfiguration);
+        services.AddSingleton(authConfiguration.CurrentOptions);
+        services.AddSingleton(sp =>
+        {
+            // Credential-bearing POST bodies must never follow an HTTP redirect.
+            var authHttp = new HttpClient(new HttpClientHandler { AllowAutoRedirect = false }) { Timeout = TimeSpan.FromMinutes(2) };
+            authHttp.DefaultRequestHeaders.UserAgent.Add(new ProductInfoHeaderValue("MDCL", BuildInfo.Version));
+            return new MicrosoftAuthProtocol(authHttp, sp.GetRequiredService<MicrosoftAuthOptions>(), ownsHttpClient: true);
+        });
         services.AddSingleton<IAuthorizationCodeProvider, LoopbackAuthorizationCodeProvider>();
         services.AddSingleton<IBrowserLauncher, SystemBrowserLauncher>();
         services.AddSingleton<IAccountService, MicrosoftAccountService>();

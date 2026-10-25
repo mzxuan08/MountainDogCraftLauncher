@@ -16,6 +16,38 @@ namespace MDCL.Desktop.Tests;
 public sealed class WorkflowInteractionTests
 {
     [Fact]
+    public async Task LocalIdentity_CanManageExistingInstance_ButPrimaryActionRequestsMicrosoftLogin()
+    {
+        using var context = new Context();
+        var vm = context.ViewModel;
+        await vm.InitializeAsync();
+        await vm.CreateCommand.ExecuteAsync(null);
+        vm.SelectedInstance = new InstanceRow(vm.SelectedInstance!.Manifest, true);
+        Assert.True(vm.InstallCommand.CanExecute(null));
+        Assert.False(vm.LaunchCommand.CanExecute(null));
+        Assert.Equal("登录后启动", vm.PrimaryActionLabel);
+        await vm.PrimaryActionCommand.ExecuteAsync(null);
+        Assert.Equal(4, vm.SelectedTabIndex);
+        Assert.Single(vm.Instances);
+        Assert.Single(vm.Accounts);
+        Assert.False(vm.IsGameRunning);
+    }
+
+    [Fact]
+    public async Task PublicClientConfiguration_RejectsMalformedInput_AndClearlyRequiresRestart()
+    {
+        using var context = new Context();
+        var vm = context.ViewModel;
+        vm.MicrosoftClientId = "not-a-client-id";
+        Assert.False(vm.SaveMicrosoftClientIdCommand.CanExecute(null));
+        vm.MicrosoftClientId = "3464d481-437f-4790-a036-31b93a6714ce";
+        Assert.True(vm.SaveMicrosoftClientIdCommand.CanExecute(null));
+        await vm.SaveMicrosoftClientIdCommand.ExecuteAsync(null);
+        Assert.Contains("重新打开", vm.MicrosoftConfigurationStatus, StringComparison.Ordinal);
+        Assert.False(vm.IsMicrosoftConfigured);
+    }
+
+    [Fact]
     public void FourSectionNavigation_KeepsExistingFeatureRoutesReachable()
     {
         using var context = new Context();

@@ -227,6 +227,10 @@ public sealed class LauncherWorkflow
             if (File.Exists(Path.Combine(instanceDirectory, MrpackImportService.PendingFileName)))
                 throw new MdclException(MdclError.Of("MRPACK_IMPORT_INCOMPLETE", "Launch", "整合包尚未导入完成，请用同一包重新导入以恢复。", true));
             var resolved = await _resolvedStore.LoadAsync(instanceDirectory, ct);
+            // Every executable game path passes this ownership-verified account
+            // service. Local records remain available as data, never as sessions.
+            var account = await _accounts.GetSessionAsync(accountId, false, ct);
+            VerifyLaunchSession(account);
             var java = await EnsureJavaAsync(manifest, resolved, ct);
             sessionDirectory = Path.Combine(_paths.DataRoot, "sessions", Guid.NewGuid().ToString("N"));
             var natives = Path.Combine(sessionDirectory, "natives");
@@ -235,7 +239,10 @@ public sealed class LauncherWorkflow
                 .Select(x => Path.Combine(_paths.SharedRoot, "libraries", x.Native!.RelativePath)).ToArray(), natives, ct);
             var plan = new LaunchPlanBuilder().Build(manifest, resolved, java, _paths.SharedRoot,
                 instanceDirectory, natives, Target);
-            var account = await _accounts.GetSessionAsync(accountId, false, ct);
+            // Java installation/extraction may take minutes. Refresh again if
+            // necessary rather than starting a game with an expired snapshot.
+            account = await _accounts.GetSessionAsync(accountId, false, ct);
+            VerifyLaunchSession(account);
             var session = await _processes.StartAsync(plan, account, ct);
             _ = ReleaseWhenExitAsync(session, lease, sessionDirectory);
             return new LaunchOutcome(session, java);
@@ -246,6 +253,16 @@ public sealed class LauncherWorkflow
             await lease.DisposeAsync();
             throw;
         }
+    }
+
+    private static void VerifyLaunchSession(AuthSession account)
+    {
+        if (account.Profile.Kind != AccountKind.Microsoft)
+            throw new MdclException(MdclError.Of("AUTH_MICROSOFT_REQUIRED", "Launch",
+                "启动游戏前需要登录并验证拥有 Minecraft Java 版的微软账号。本地资料和实例数据已保留。", false));
+        if (string.IsNullOrWhiteSpace(account.AccessToken) || account.ExpiresAt <= DateTimeOffset.UtcNow ||
+            string.IsNullOrWhiteSpace(account.Profile.MinecraftUuid))
+            throw new MdclException(MdclError.Of("AUTH_SESSION_INVALID", "Launch", "正版会话缺失或已过期，请重新登录。", false));
     }
 
     private async Task ReleaseWhenExitAsync(IGameSession session, IInstanceLease lease, string sessionDirectory)

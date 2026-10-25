@@ -53,3 +53,6 @@ Desktop completion: instance rename/memory/exact-Java policy, independent copy, 
 UI and release closure: classic blue/white PCL-style layout; 14 native renders; Java selection race regression failed then passed; durable install commit marker blocks mismatched snapshots; source archive provenance rejects changes and works without Git. Full suite 171 passed plus 2 packaging tests.
 
 PCL fidelity revision requested by owner: 960x640/850x560 custom blue title bar, four pill navigation items, separate account area, outlined launch button and empty home content. Ten internal pages remain reachable. Added navigation/account-mode/empty launcher checks, kept Microsoft mode on refresh, and verified both incomplete-install markers reject copying. Full suite 176 passed; packaging Python 2 passed. Twenty native renders retained.
+
+2026-10-25 产品规则更新：用户确认正式版仅允许已验证正版微软账号启动，保留本地资料和实例数据。原 U06 本地身份启动目标被此规则取代；旧原版/加载器主菜单截图属于历史本地会话证据，不能作为 alpha.3 微软认证后启动通过。当前外部 AppID 审核与真实账号验收待完成。
+Microsoft integration: own public client, PKCE loopback, nonredirecting credential transport, stage reporting, atomic public configuration, ownership-gated launch. Release suite 197 passed; packaging 2 passed. Real Microsoft login and Mac runtime remain unverified.
