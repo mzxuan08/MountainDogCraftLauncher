@@ -1,0 +1,13 @@
+{
+  "signatureVerified": true,
+  "temporaryPrivateKeyDeleted": true,
+  "packageSha256": "d129e529470396787eacf4eb41df96a4aea2a0c19bbffb443ba8e5dfbe24bf93",
+  "invalidDesktopAutomaticRollbackPassed": true,
+  "userDataUnchanged": true,
+  "rid": "win-x64",
+  "macRuntimeTested": false,
+  "manualRollbackPassed": true,
+  "realDesktopHealthPassed": true,
+  "version": "0.2.0-alpha.1",
+  "productionSigning": false
+}

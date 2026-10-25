@@ -1,0 +1,15 @@
+  MDCL.Core -> <workspace>\src\MDCL.Core\bin\Release\net10.0\MDCL.Core.dll
+  MDCL.ReleaseTool -> <workspace>\src\MDCL.ReleaseTool\bin\Release\net10.0\MDCL.ReleaseTool.dll
+
+已成功生成。
+    0 个警告
+    0 个错误
+
+已用时间 00:00:00.98
+signed 0.2.0-alpha.1 win-x64 preview
+verified 0.2.0-alpha.1 win-x64 preview size=113377310 sha256=d129e529470396787eacf4eb41df96a4aea2a0c19bbffb443ba8e5dfbe24bf93
+applied 0.2.0-alpha.1; backup=<workspace>\artifacts\work\update-acceptance-8352c58545fe43e1b75afdc210407a7a\.mdcl-update-backup-29eb9eb86cca4221952b61a6201bc99b; state=<workspace>\artifacts\work\update-acceptance-8352c58545fe43e1b75afdc210407a7a\mdcl-update-state.json
+rolled back <workspace>\artifacts\work\update-acceptance-8352c58545fe43e1b75afdc210407a7a\application
+signed 0.2.0-alpha.1 win-x64 preview
+UPDATE_HEALTHCHECK_FAILED: 新版本健康检查失败，正在恢复旧版本。
+
