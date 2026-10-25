@@ -1,0 +1,11 @@
+{
+  "sessionId": "e81ea0b7-3de9-4797-8d40-deab86ecdfe5",
+  "instanceId": "23e3162d-8229-436a-9a4d-e291ad626dc5",
+  "pid": 2052,
+  "processStartedAt": "2026-10-25T03:06:23.6067246+00:00",
+  "ExitCode": 0,
+  "state": "Exited",
+  "ExitedAt": "2026-10-25T03:06:51.6952099+00:00",
+  "StoppedByUser": false,
+  "ErrorCode": null
+}

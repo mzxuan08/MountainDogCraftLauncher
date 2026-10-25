@@ -37,8 +37,8 @@ public sealed class OperationCoordinator : IOperationCoordinator
         long sequence = 0;
         void Emit(InstallStep step, OperationState state, long? done, long? total, string message)
         {
-            sequence++;
-            progress?.Report(new OperationEvent(plan.PlanId, step.StepId, sequence, state, done, total, message, DateTimeOffset.UtcNow));
+            var current = Interlocked.Increment(ref sequence);
+            progress?.Report(new OperationEvent(plan.PlanId, step.StepId, current, state, done, total, message, DateTimeOffset.UtcNow));
         }
         try
         {
@@ -58,13 +58,15 @@ public sealed class OperationCoordinator : IOperationCoordinator
                 await store.SaveAsync(journal, ct);
                 Emit(step, OperationState.Running, null, null, "step-started");
 
-                ArtifactReceipt? lastReceipt = null;
-                foreach (var artifact in step.Artifacts)
-                {
-                    var transfer = new CallbackProgress<TransferEvent>(x =>
-                        Emit(step, OperationState.Running, x.DoneBytes, x.TotalBytes, x.Phase));
-                    lastReceipt = await _downloader.EnsureAsync(artifact, targetRoot, transfer, ct);
-                }
+                var receipts = new System.Collections.Concurrent.ConcurrentBag<ArtifactReceipt>();
+                await Parallel.ForEachAsync(step.Artifacts, new ParallelOptions { MaxDegreeOfParallelism = 6, CancellationToken = ct },
+                    async (artifact, token) =>
+                    {
+                        var transfer = new CallbackProgress<TransferEvent>(x =>
+                            Emit(step, OperationState.Running, x.DoneBytes, x.TotalBytes, x.Phase));
+                        receipts.Add(await _downloader.EnsureAsync(artifact, targetRoot, transfer, token));
+                    });
+                var lastReceipt = receipts.FirstOrDefault();
                 journal = ReplaceStep(journal, current with
                 {
                     State = "Completed",

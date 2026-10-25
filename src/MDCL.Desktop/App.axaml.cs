@@ -17,10 +17,9 @@ public sealed class App : Avalonia.Application
         if (ApplicationLifetime is IClassicDesktopStyleApplicationLifetime desktop)
         {
             var services = CompositionRoot.CreateServiceProvider();
-            desktop.MainWindow = new MainWindow
-            {
-                DataContext = services.GetRequiredService<MainWindowViewModel>()
-            };
+            var viewModel = services.GetRequiredService<MainWindowViewModel>();
+            desktop.MainWindow = new MainWindow { DataContext = viewModel };
+            _ = viewModel.InitializeAsync();
         }
 
         base.OnFrameworkInitializationCompleted();

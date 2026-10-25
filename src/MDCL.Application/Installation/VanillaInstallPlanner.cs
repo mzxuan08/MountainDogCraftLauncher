@@ -71,7 +71,7 @@ public sealed class VanillaInstallPlanner : IInstallPlanner
         }
 
         var planHash = HashPlan(resolved, request, steps);
-        return new InstallPlan(Guid.NewGuid().ToString("N"), request.InstanceId, planHash, 1, steps,
+        return new InstallPlan("install-" + planHash[..24], request.InstanceId, planHash, 1, steps,
             $"{request.Target.RuntimeIdentifier}|{resolved.ContentHash}|{steps.Sum(x => x.Artifacts.Count)}");
     }
 
