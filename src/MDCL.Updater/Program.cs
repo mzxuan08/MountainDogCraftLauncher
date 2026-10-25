@@ -11,6 +11,7 @@ try
     {
         "apply" => await ApplyAsync(options),
         "rollback" => await RollbackAsync(options),
+        "verify" => await VerifyAsync(options),
         _ => Usage()
     };
 }
@@ -38,6 +39,16 @@ static async Task<int> ApplyAsync(Dictionary<string, string> options)
         manifest = result.Manifest
     }, new JsonSerializerOptions { WriteIndented = true }));
     Console.WriteLine($"applied {result.Manifest.Version}; backup={result.BackupDirectory}; state={statePath}");
+    return 0;
+}
+
+static async Task<int> VerifyAsync(Dictionary<string, string> options)
+{
+    var envelope = await File.ReadAllTextAsync(Required(options, "envelope"));
+    var publicKey = await File.ReadAllTextAsync(Required(options, "public-key"));
+    var manifest = UpdateReleaseVerifier.VerifyEnvelope(envelope, publicKey,
+        Required(options, "channel"), Required(options, "rid"), Required(options, "current"), DateTimeOffset.UtcNow);
+    Console.WriteLine($"verified {manifest.Version} {manifest.Rid} {manifest.Channel} size={manifest.Size} sha256={manifest.Sha256}");
     return 0;
 }
 
@@ -78,6 +89,7 @@ static Dictionary<string, string> Parse(string[] values)
 static int Usage()
 {
     Console.Error.WriteLine("MDCL.Updater apply --envelope <json> --package <zip> --target <dir> --public-key <pem> --channel <c> --rid <rid> --current <version>");
+    Console.Error.WriteLine("MDCL.Updater verify --envelope <json> --public-key <pem> --channel <c> --rid <rid> --current <version>");
     Console.Error.WriteLine("MDCL.Updater rollback --state <mdcl-update-state.json>");
     return 2;
 }
