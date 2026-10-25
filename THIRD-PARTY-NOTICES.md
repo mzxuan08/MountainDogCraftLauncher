@@ -8,10 +8,20 @@ MDCL is independently implemented. No PCL or HMCL source code, icons, or assets 
 | Avalonia and listed Avalonia packages | 12.1.4 | Cross-platform desktop UI | MIT; https://github.com/AvaloniaUI/Avalonia |
 | CommunityToolkit.Mvvm | 8.4.2 | MVVM primitives | MIT; https://github.com/CommunityToolkit/dotnet |
 | Microsoft.Data.Sqlite | 10.0.13 | Local index and journal storage | MIT; https://github.com/dotnet/efcore |
-| SQLite (through SQLitePCLRaw) | locked transitively | Embedded database | Public domain; https://www.sqlite.org/copyright.html |
+| SQLitePCLRaw (bundle/core/provider) | locked transitively | SQLite interop | Apache-2.0; https://github.com/ericsink/SQLitePCLRaw |
+| SQLite | locked transitively | Embedded database | Public domain; https://www.sqlite.org/copyright.html |
 | Microsoft.Extensions.* | 10.0.13 | DI and logging | MIT; https://github.com/dotnet/runtime |
 | System.Security.Cryptography.ProtectedData | 10.0.13 | Windows DPAPI adapter | MIT; https://github.com/dotnet/runtime |
+| SkiaSharp / native Skia | 3.119.4 | 2D rendering | MIT; Skia portions BSD-3-Clause; https://github.com/mono/SkiaSharp |
+| HarfBuzzSharp / native HarfBuzz | 8.3.1.3 | Text shaping | MIT; HarfBuzz Old MIT; https://github.com/mono/SkiaSharp |
+| Avalonia.Fonts.Inter | 12.1.4 | Embedded Inter font | Inter font SIL OFL 1.1; https://github.com/rsms/inter |
+| MicroCom.Runtime | 0.11.6 | macOS COM interop | MIT; https://github.com/AvaloniaUI/Avalonia |
+| Tmds.DBus.Protocol | 0.94.1 | Linux D-Bus transport | MIT; https://github.com/tmds/Tmds.DBus |
 | xUnit and test runner | 2.9.3 / 4.0.1 | Tests (not shipped) | Apache-2.0 / MIT; https://github.com/xunit/xunit |
 | Microsoft.NET.Test.Sdk | 18.11.0 | Test host (not shipped) | MIT; https://github.com/microsoft/vstest |
 
 The authoritative transitive versions and hashes are in each project's `packages.lock.json`. A complete release dependency report is generated during T08. No third-party code or resource may be added without updating this file and reviewing its license.
+
+## Project license
+
+MDCL's own source/binary license has **not been selected by the project owner**. Until a LICENSE is added by the owner, do not redistribute MDCL itself. Third-party components remain under the licenses listed above.

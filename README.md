@@ -12,6 +12,7 @@
 - Fabric `0.20.1`/`0.16.14` 可解析和安装，但启动在 tiny-remapper 首次 remap 写 `.tmp` 处失败，F03 未通过。
 - Forge 47.2.0 与 NeoForge 47.1.106 + Minecraft 1.20.1 均已通过真实安装、启动到主菜单并正常退出。mrpack 已用真实最小包完成导入、overrides 合并和原版启动，Modrinth 已完成真实搜索与安装。本地模组管理（含桌面启停）和 Modrinth 搜索/安装、更新清单验签、应用替换/回退核心与独立更新器 CLI 已完成，真实签名发布链未完成。
 - 所有未验收事项、证据与限制见 `docs/evidence/T00`—`T12` 和 `release-matrix.md`。不得把构建、安装成功或代码存在写成游戏运行通过。
+- 项目自身 LICENSE 尚未由所有者选定；在选定前不应再分发 MDCL 源码或二进制。第三方组件许可见 `THIRD-PARTY-NOTICES.md`。
 
 **推荐采用 C# / .NET 10 LTS + Avalonia + MVVM。共享启动核心，分别实现 Windows 与 macOS 的系统适配，发布 win-x64、osx-arm64、osx-x64 三套产物。**
 
