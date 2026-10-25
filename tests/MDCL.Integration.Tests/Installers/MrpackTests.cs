@@ -1,0 +1,70 @@
+using System.IO.Compression;
+using System.Text;
+using MDCL.Core.Errors;
+using MDCL.Core.Instances;
+using MDCL.Infrastructure.Installers;
+using Xunit;
+
+namespace MDCL.Integration.Tests.Installers;
+
+public sealed class MrpackTests
+{
+    [Fact]
+    public async Task PreviewAndPlan_CaptureComponentsHashesAndOverrides()
+    {
+        using var temp = new TestDirectory();
+        var pack = Path.Combine(temp.Path, "pack.mrpack");
+        await CreatePack(pack, "mods/example.jar", "overrides/config/example.toml");
+        var reader = new MrpackReader();
+        var preview = await reader.ReadAsync(pack, CancellationToken.None);
+        Assert.Equal("fabric", preview.LoaderKind);
+        Assert.Equal("0.16.10", preview.LoaderVersion);
+        Assert.Equal("1.20.1", preview.GameVersion);
+        Assert.Single(preview.Files);
+        Assert.Equal(1, preview.OverrideFileCount);
+        var plan = reader.CreatePlan(preview, InstanceId.New());
+        Assert.Equal("mods/example.jar", Assert.Single(plan.Steps).Artifacts[0].RelativeTargetPath);
+        Assert.Equal("SHA512", plan.Steps[0].Artifacts[0].HashAlgorithm);
+    }
+
+    [Theory]
+    [InlineData("../evil.jar")]
+    [InlineData("/absolute.jar")]
+    [InlineData("mods\\..\\evil.jar")]
+    public async Task UnsafePath_IsRejected(string path)
+    {
+        using var temp = new TestDirectory();
+        var pack = Path.Combine(temp.Path, "bad.mrpack");
+        await CreatePack(pack, path, null);
+        var error = await Assert.ThrowsAsync<MdclException>(() => new MrpackReader().ReadAsync(pack, CancellationToken.None));
+        Assert.Equal("MRPACK_PATH_UNSAFE", error.Error.ErrorCode);
+    }
+
+    private static async Task CreatePack(string path, string filePath, string? overridePath)
+    {
+        using var stream = File.Create(path);
+        using var zip = new ZipArchive(stream, ZipArchiveMode.Create);
+        var index = zip.CreateEntry("modrinth.index.json");
+        await using (var writer = new StreamWriter(index.Open(), new UTF8Encoding(false)))
+        {
+            await writer.WriteAsync($$"""
+                {
+                  "formatVersion": 1, "game": "minecraft", "name": "Demo Pack", "versionId": "1.0.0",
+                  "dependencies": { "minecraft": "1.20.1", "fabric-loader": "0.16.10" },
+                  "files": [{
+                    "path": {{System.Text.Json.JsonSerializer.Serialize(filePath)}},
+                    "hashes": { "sha512": "{{new string('a', 128)}}", "sha1": "{{new string('b', 40)}}" },
+                    "fileSize": 12,
+                    "downloads": ["https://example.invalid/mod.jar"]
+                  }]
+                }
+                """);
+        }
+        if (overridePath is not null)
+        {
+            var entry = zip.CreateEntry("overrides/" + overridePath);
+            await using var writer = new StreamWriter(entry.Open(), new UTF8Encoding(false));
+            await writer.WriteAsync("value=1");
+        }
+    }
+}

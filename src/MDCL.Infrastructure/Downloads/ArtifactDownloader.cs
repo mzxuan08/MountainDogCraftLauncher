@@ -227,6 +227,7 @@ public sealed class ArtifactDownloader : IArtifactDownloader
         {
             "SHA1" => IncrementalHash.CreateHash(HashAlgorithmName.SHA1),
             "SHA256" => IncrementalHash.CreateHash(HashAlgorithmName.SHA256),
+            "SHA512" => IncrementalHash.CreateHash(HashAlgorithmName.SHA512),
             _ => throw new MdclException(MdclError.Of("DOWNLOAD_HASH_ALGORITHM", "Download", $"不支持的摘要算法 {algorithm}。", false))
         };
         await using var stream = new FileStream(path, FileMode.Open, FileAccess.Read, FileShare.Read, 81920, FileOptions.Asynchronous | FileOptions.SequentialScan);

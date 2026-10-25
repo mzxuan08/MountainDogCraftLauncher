@@ -10,9 +10,18 @@ using MDCL.Infrastructure.Launcher;
 
 namespace MDCL.Desktop.ViewModels;
 
-public sealed record InstanceRow(InstanceManifest Manifest)
+public sealed record InstanceRow(InstanceManifest Manifest, bool IsInstalled = false)
 {
-    public string Display => $"{Manifest.DisplayName}  ·  {Manifest.BaseVersion}";
+    public string Display
+    {
+        get
+        {
+            var loader = Manifest.Loader.Kind == LoaderKind.Vanilla
+                ? "原版"
+                : $"{Manifest.Loader.Kind} {Manifest.Loader.Version}";
+            return $"{Manifest.DisplayName}  ·  {Manifest.BaseVersion}  ·  {loader}{(IsInstalled ? "" : "  ·  未安装")}";
+        }
+    }
     public InstanceId Id => Manifest.InstanceId;
 }
 
@@ -71,7 +80,11 @@ public sealed partial class MainWindowViewModel : ObservableObject
         var selectedId = SelectedInstance?.Id;
         var selectedAccountId = SelectedAccount?.Id;
         Instances.Clear();
-        foreach (var instance in await _workflow.ListInstancesAsync(CancellationToken.None)) Instances.Add(new InstanceRow(instance));
+        foreach (var instance in await _workflow.ListInstancesAsync(CancellationToken.None))
+        {
+            var instanceDirectory = Path.Combine(_workflow.Paths.InstancesRoot, instance.InstanceId.ToString());
+            Instances.Add(new InstanceRow(instance, File.Exists(Path.Combine(instanceDirectory, "resolved-version.json"))));
+        }
         Accounts.Clear();
         foreach (var account in await _workflow.Accounts.ListAsync(CancellationToken.None)) Accounts.Add(new AccountRow(account));
         SelectedInstance = Instances.FirstOrDefault(x => x.Id == selectedId) ?? Instances.FirstOrDefault();
