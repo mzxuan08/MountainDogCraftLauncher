@@ -49,8 +49,12 @@ public sealed class ForgeInstalledVersionProvider : IComponentVersionProvider
     private bool Matches(VersionDocument document, VersionSelection selection)
     {
         if (!string.Equals(document.InheritsFrom, selection.BaseVersionId, StringComparison.Ordinal)) return false;
-        var marker = Kind == LoaderKind.Forge ? "forge" : "neoforge";
-        if (!document.Id.Contains(marker, StringComparison.OrdinalIgnoreCase)) return false;
+        var isForge = document.Id.Contains("forge", StringComparison.OrdinalIgnoreCase);
+        var isNeoForge = document.Id.Contains("neoforge", StringComparison.OrdinalIgnoreCase);
+        var matchesKind = Kind == LoaderKind.Forge
+            ? isForge && !isNeoForge
+            : isNeoForge || (selection.BaseVersionId == "1.20.1" && isForge);
+        if (!matchesKind) return false;
         if (string.IsNullOrWhiteSpace(selection.LoaderVersion)) return true;
         return document.Id.Contains(selection.LoaderVersion, StringComparison.OrdinalIgnoreCase);
     }

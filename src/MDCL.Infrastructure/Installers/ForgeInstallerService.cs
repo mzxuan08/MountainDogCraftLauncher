@@ -79,6 +79,9 @@ public sealed class ForgeInstallerService
         {
             LoaderKind.Forge => (new Uri($"https://maven.minecraftforge.net/net/minecraftforge/forge/{request.GameVersion}-{request.LoaderVersion}/forge-{request.GameVersion}-{request.LoaderVersion}-installer.jar"),
                 $"forge-{request.GameVersion}-{request.LoaderVersion}"),
+            LoaderKind.NeoForge when request.GameVersion == "1.20.1" =>
+                (new Uri($"https://maven.neoforged.net/releases/net/neoforged/forge/{request.GameVersion}-{request.LoaderVersion}/forge-{request.GameVersion}-{request.LoaderVersion}-installer.jar"),
+                    $"neoforge-{request.GameVersion}-{request.LoaderVersion}"),
             LoaderKind.NeoForge => (new Uri($"https://maven.neoforged.net/releases/net/neoforged/neoforge/{request.LoaderVersion}/neoforge-{request.LoaderVersion}-installer.jar"),
                 $"neoforge-{request.LoaderVersion}"),
             _ => throw new MdclException(MdclError.Of("LOADER_KIND_INVALID", "Forge", "不是 Forge/NeoForge 请求。", false))

@@ -12,7 +12,8 @@ public sealed class ForgeInstallerServiceTests
 {
     [Theory]
     [InlineData(LoaderKind.Forge, "1.20.1", "47.2.0", "forge-1.20.1-47.2.0-installer.jar")]
-    [InlineData(LoaderKind.NeoForge, "1.20.1", "47.1.106", "neoforge-47.1.106-installer.jar")]
+    [InlineData(LoaderKind.NeoForge, "1.20.1", "47.1.106", "forge-1.20.1-47.1.106-installer.jar")]
+    [InlineData(LoaderKind.NeoForge, "1.21.1", "21.1.119", "neoforge-21.1.119-installer.jar")]
     public async Task DownloaderAndRunner_ReceiveOfficialInstallerAndInstallClientArgs(
         LoaderKind kind, string game, string loader, string expectedFile)
     {

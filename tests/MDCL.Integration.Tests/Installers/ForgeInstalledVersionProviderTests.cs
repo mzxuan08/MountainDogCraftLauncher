@@ -31,6 +31,22 @@ public sealed class ForgeInstalledVersionProviderTests
     }
 
     [Fact]
+    public async Task LegacyNeoForgeFor1201UsesForgeVersionId()
+    {
+        using var temp = new TestDirectory();
+        var paths = new WindowsAppPaths(temp.Path);
+        var dir = Path.Combine(paths.SharedRoot, "versions", "1.20.1-forge-47.1.106");
+        Directory.CreateDirectory(dir);
+        await File.WriteAllTextAsync(Path.Combine(dir, "1.20.1-forge-47.1.106.json"),
+            """{"id":"1.20.1-forge-47.1.106","inheritsFrom":"1.20.1","mainClass":"cpw.mods.bootstraplauncher.BootstrapLauncher","libraries":[]}""");
+        var result = await new ForgeInstalledVersionProvider(paths, LoaderKind.NeoForge).GetVersionAsync(
+            new VersionSelection("1.20.1", LoaderKind.NeoForge, "47.1.106"),
+            new VersionManifestEntry("1.20.1", "https://piston-meta.mojang.com/1.20.1.json", null, "release"),
+            new TargetPlatform(LauncherOperatingSystem.Windows, CpuArchitecture.X64, CpuArchitecture.X64), CancellationToken.None);
+        Assert.Equal("1.20.1-forge-47.1.106", result.Document.Id);
+    }
+
+    [Fact]
     public async Task ReadsInstalledForgeVersionJsonWithMatchingParent()
     {
         using var temp = new TestDirectory();
