@@ -50,6 +50,21 @@ OPEN_OK true 22
 
 仍成功。因此不是 Java 临时目录权限或 ZipFS 对临时目录的依赖导致。
 
+## 额外排除：JDK 17.0.4
+
+使用 Temurin `17.0.20.1+1`（远新于机器自带 17.0.4）重新完成原版安装、Fabric 0.16.14 安装并启动：
+
+```text
+RuntimeException: error remapping game jars
+IOException: the jar file ...client-intermediary.jar.tmp can't be written
+at tinyremapper.OutputConsumerPath.<init>
+at Fabric GameProviderHelper.deobfuscate
+```
+
+失败点与旧 JDK 完全相同；`.tmp` 仍留下 22 字节空 ZIP。由此排除 JDK 17.0.4 的版本缺陷。
+
+证据：`T09-fabric-jdk17.0.20-failure.png`
+
 ## 仍未定位
 
 失败只在 Fabric Loader 的游戏进程内出现。游戏进程与独立探针的差异包括：
